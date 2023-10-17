@@ -1,0 +1,7 @@
+string reference_frame
+geometry_msgs/Vector3 gravity # In reference frame, e.g. [0, 0, -9.81]
+geometry_msgs/Transform interaction_frame_wrt_sensor_frame
+ft_msgs/FtCalibration ft_calibration
+---
+bool success    # indicate successful run of triggered service
+string message  # informational, e.g. for error messages

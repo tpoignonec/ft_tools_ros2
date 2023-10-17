@@ -1,0 +1,7 @@
+geometry_msgs/Pose sensor_frame_wrt_ref_frame
+geometry_msgs/Vector3 gravity_in_ref_frame #usually [0, 0, -9.81]
+geometry_msgs/Wrench raw_wrench # In sensor frame!
+---
+bool success    # indicate successful run of triggered service
+string message  # informational, e.g. for error messages
+int64 nb_sample # Total number of samples
