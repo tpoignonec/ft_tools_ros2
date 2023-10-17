@@ -1,0 +1,30 @@
+wrench_estimator_node:
+  ros__parameters:
+    topic_raw_wrench: raw_wrench
+    topic_joint_state: joint_states
+    topic_estimated_wrench: ft_sensor_wrench
+    topic_interaction_wrench: ft_interaction_wrench
+
+    reference_frame: world
+    sensor_frame: ft_sensor
+    interaction_frame: tool0
+
+    raw_torque_is_in_mm: true
+    gravity_in_robot_base_frame:
+      - 0.0
+      - 0.0
+      - -9.81
+
+    wrench_deadband:
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+
+    ft_calibration:
+      mass: 0.0
+      sensor_frame_to_com: [0.0, 0.0, 0.0]
+      force_offset: [0.0, 0.0, 0.0]
+      torque_offset: [0.0, 0.0, 0.0]
