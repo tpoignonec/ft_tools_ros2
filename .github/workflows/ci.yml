@@ -35,7 +35,7 @@ jobs:
           run: |
             cd /ros # structure = <...>/ros/src/ft_tools_ros2/<...>
             . /opt/ros/humble/setup.sh
-            vcs import src < src/ft_tools_ros2/ft_tools_ros2.repos
+            # vcs import src < src/ft_tools_ros2/ft_tools_ros2.repos
             rosdep install --ignore-src --from-paths . -y -r
             colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install
 
@@ -47,7 +47,7 @@ jobs:
           run: |
             cd /ros
             . /opt/ros/humble/setup.sh
-            vcs import src < src/ft_tools_ros2/ft_tools_ros2.repos
+            # vcs import src < src/ft_tools_ros2/ft_tools_ros2.repos
             rosdep install --ignore-src --from-paths . -y -r
             colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install
             colcon test
