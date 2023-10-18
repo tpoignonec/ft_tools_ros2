@@ -14,7 +14,8 @@
 
 import sys
 # import time
-from PyQt5.QtWidgets import QMainWindow, QApplication, QMenu, QAction, QStyle, qApp
+from PyQt5.QtWidgets import QMainWindow, QApplication
+from PyQt5.QtWidgets import QMenu, QAction, QStyle, qApp
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt
 from ft_gui.ft_calibration_window import Ui_MainWindow
@@ -45,12 +46,22 @@ class MainWindow(QMainWindow):
         self.create_menubars()
         self.show()
 
-        self.ui.checkBox_calib_connect_ros.stateChanged.connect(self.connect_ros_calib)
+        self.ui.checkBox_calib_connect_ros.stateChanged.connect(
+            self.connect_ros_calib
+        )
 
-        self.ui.pushButton_add_calib_sample.clicked.connect(self.callback_add_calibration_sample)
-        self.ui.pushButton_reset.clicked.connect(self.callback_reset_calibration)
-        self.ui.pushButton_get_calibration.clicked.connect(self.callback_get_calibration)
-        self.ui.pushButton_save_calibration.clicked.connect(self.callback_save_calibration)
+        self.ui.pushButton_add_calib_sample.clicked.connect(
+            self.callback_add_calibration_sample
+        )
+        self.ui.pushButton_reset.clicked.connect(
+            self.callback_reset_calibration
+        )
+        self.ui.pushButton_get_calibration.clicked.connect(
+            self.callback_get_calibration
+        )
+        self.ui.pushButton_save_calibration.clicked.connect(
+            self.callback_save_calibration
+        )
 
         self.ui.label_service_namespace.setText(
             self.srv_calibration_namespace
