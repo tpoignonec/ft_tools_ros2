@@ -9,6 +9,7 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_test</buildtool_depend>
+  <buildtool_depend>generate_parameter_library</buildtool_depend>
 
   <depend>ft_msgs</depend>
 
