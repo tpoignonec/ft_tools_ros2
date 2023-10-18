@@ -124,6 +124,10 @@ void FtCalibrationNode::add_calibration_sample(
   const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Adding a calibration sample..."
+  );
   (void)request;
   if (!update_parameters()) {
     response->success = false;
@@ -195,6 +199,10 @@ void FtCalibrationNode::save_calibration(
   const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Saving the ft_calibration..."
+  );
   (void)request;
   // Refresh computed parameters
   FtParameters ft_calib_parameters;
@@ -227,6 +235,10 @@ void FtCalibrationNode::reset(
     response->message = "Invalid parameters!";
     return;
   }
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Resetting the ft_calibration..."
+  );
   response->success = true;
 }
 
@@ -298,20 +310,21 @@ bool FtCalibrationNode::register_services()
   }
   bool all_ok = true;
   // Register services
+  std::string node_name = this->get_name();
   srv_add_calibration_ = this->create_service<std_srvs::srv::Trigger>(
-    "add_calibration_sample",
+    node_name + "/add_calibration_sample",
     std::bind(&FtCalibrationNode::add_calibration_sample, this, _1, _2)
   );
   srv_get_calibration_ = this->create_service<ft_msgs::srv::GetCalibration>(
-    "get_calibration",
+    node_name + "/get_calibration",
     std::bind(&FtCalibrationNode::get_calibration, this, _1, _2)
   );
   srv_save_calibration_ = this->create_service<std_srvs::srv::Trigger>(
-    "save_calibration",
+    node_name + "/save_calibration",
     std::bind(&FtCalibrationNode::save_calibration, this, _1, _2)
   );
   srv_reset_ = this->create_service<std_srvs::srv::Trigger>(
-    "reset",
+    node_name + "/reset",
     std::bind(&FtCalibrationNode::reset, this, _1, _2)
   );
   return all_ok;
