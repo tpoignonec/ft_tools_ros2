@@ -17,10 +17,12 @@
 #include <Eigen/Dense>
 #include <Eigen/Core>
 
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 
 #include "ft_tools/ft_parameters.hpp"
+#include "ament_index_cpp/get_package_share_directory.hpp"
 
 namespace ft_tools
 {
@@ -91,6 +93,13 @@ bool FtParameters::from_yaml(const std::string & filename)
   return all_ok;
 }
 
+bool FtParameters::from_yaml(
+  const std::string & config_filename,
+  const std::string & config_package)
+{
+  return from_yaml(get_config_file_path(config_filename, config_package));
+}
+
 // Dumper
 bool FtParameters::to_yaml(const std::string & filename)
 {
@@ -115,6 +124,13 @@ bool FtParameters::to_yaml(const std::string & filename)
   fout << config;
 
   return all_ok;
+}
+
+bool FtParameters::to_yaml(
+  const std::string & config_filename,
+  const std::string & config_package)
+{
+  return to_yaml(get_config_file_path(config_filename, config_package));
 }
 
 
@@ -162,6 +178,17 @@ ft_msgs::msg::FtCalibration FtParameters::to_msg()
   msg.torque_offset.z = torque_offset[2];
 
   return msg;
+}
+
+std::string FtParameters::get_config_file_path(
+  const std::string & config_filename,
+  const std::string & config_package
+)
+{
+  std::string share_dir_path = ament_index_cpp::get_package_share_directory(config_package);
+  auto config_file_path = std::filesystem::path(share_dir_path) / "config" / config_filename;
+  std::string filename{config_file_path.u8string()};
+  return filename;
 }
 
 }  // namespace ft_tools

@@ -19,12 +19,6 @@ ft_calibration_node:
       description: "(optional) Specifies the minimal number of samples required (min 5).",
       read_only: false
     }
-    filename: {
-        type: string,
-        default_value: "calibration.yaml",
-        description: "Name of the file used to save the calibration results (N.B., in 'ft_tools/ressources').",
-        read_only: false
-      }
     gravity_in_reference_frame: {
       type: double_array,
       default_value: [0., 0., -9.81],
@@ -42,6 +36,18 @@ ft_calibration_node:
         type: string,
         description: "Reference frame of the f/t sensor.",
         read_only: true
+      }
+    calibration_filename: {
+        type: string,
+        default_value: "calibration.yaml",
+        description: "Name of the file used to save the calibration results (N.B., in '<calibration_package>/config/<calibration_filename>').",
+        read_only: false
+      }
+    calibration_package: {
+        type: string,
+        default_value: "calibration.yaml",
+        description: "Name of the packagecontaining the config folder. See 'calibration_filename' parameter.",
+        read_only: false
       }
 
   kinematics:

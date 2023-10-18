@@ -20,6 +20,7 @@ set(DEPENDENCIES
   realtime_tools
   yaml_cpp_vendor
   yaml-cpp
+  ament_index_cpp
 # msgs
   std_msgs
   geometry_msgs

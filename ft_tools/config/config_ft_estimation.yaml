@@ -5,15 +5,17 @@ wrench_estimator_node:
     topic_estimated_wrench: ft_sensor_wrench
     topic_interaction_wrench: ft_interaction_wrench
 
-    reference_frame: world
-    sensor_frame: ft_sensor
-    interaction_frame: tool0
+    calibration:
+      min_nb_samples: 10
+      reference_frame:
+        id: base_link
+      sensor_frame:
+        id: ft_sensor
+      gravity_in_reference_frame: [0.0, 0.0, -9.81]
+      calibration_filename: calibration.yaml
+      calibration_package: ft_tools
 
-    raw_torque_is_in_mm: true
-    gravity_in_robot_base_frame:
-      - 0.0
-      - 0.0
-      - -9.81
+    interaction_frame: tool0
 
     wrench_deadband:
       - 0.0
@@ -22,9 +24,3 @@ wrench_estimator_node:
       - 0.0
       - 0.0
       - 0.0
-
-    ft_calibration:
-      mass: 0.0
-      sensor_frame_to_com: [0.0, 0.0, 0.0]
-      force_offset: [0.0, 0.0, 0.0]
-      torque_offset: [0.0, 0.0, 0.0]

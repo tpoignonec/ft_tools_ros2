@@ -196,7 +196,27 @@ void FtCalibrationNode::save_calibration(
   std::shared_ptr<std_srvs::srv::Trigger::Response> response)
 {
   (void)request;
-  response->success = false;
+  // Refresh computed parameters
+  FtParameters ft_calib_parameters;
+  if (!ft_calibration_process_.get_parameters(ft_calib_parameters)) {
+    response->success = false;
+    response->message = "Failed to compute calibration parameters!";
+    return;
+  }
+  // Write to yaml file
+  bool success = ft_calib_parameters.to_yaml(
+      parameters_.calibration.calibration_filename,
+      parameters_.calibration.calibration_package
+  );
+  if(success)
+  {
+    response->success = true;
+  }
+  else
+  {
+    response->success = false;
+    response->message = "Failed to save calibration parameters to yaml file!";
+  }
 }
 
 void FtCalibrationNode::reset(

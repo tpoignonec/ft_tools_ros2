@@ -117,6 +117,7 @@ void FtCalibrationSrvServer::save_calibration(
 {
   (void)request;
   response->success = false;
+  response->message = "Not yet implemented, sorry!";
 }
 
 void FtCalibrationSrvServer::reset(
