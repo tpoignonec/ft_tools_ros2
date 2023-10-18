@@ -132,6 +132,10 @@ void FtCalibrationNode::add_calibration_sample(
   if (!update_parameters()) {
     response->success = false;
     response->message = "Invalid parameters!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "add_calibration_sample() service. Invalid parameters!"
+    );
     return;
   }
   rclcpp::Time now = this->get_clock()->now();
@@ -142,12 +146,20 @@ void FtCalibrationNode::add_calibration_sample(
   if (wrench_staleness > 1) {
     response->success = false;
     response->message = "Stale wrench measurement!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "add_calibration_sample() service. Stale wrench measurement!"
+    );
     return;
   }
   if (msg_raw_wrench_.header.frame_id != parameters_.calibration.sensor_frame.id) {
     // TODO(tpoignonec): if in ref frame, do the conversion...
     response->success = false;
     response->message = "Wrench should be in sensor frame!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "add_calibration_sample() service. Wrench should be in sensor frame!"
+    );
     return;
   }
   raw_wrench_[0] = msg_raw_wrench_.wrench.force.x;
@@ -164,6 +176,10 @@ void FtCalibrationNode::add_calibration_sample(
     RCLCPP_WARN_THROTTLE(this->get_logger(), *clock, 1000, "Failed to update robot kinematics!");
     response->success = false;
     response->message = "Failed to retrieve robot state or kinematics!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "add_calibration_sample() service. Failed to retrieve robot state or kinematics!"
+    );
     return;
   }
 
@@ -183,13 +199,22 @@ void FtCalibrationNode::get_calibration(
   if (ft_calibration_process_.get_number_measurements() < parameters_.calibration.min_nb_samples) {
     response->success = false;
     response->message = "Not enough measurements!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "get_calibration() service. Not enough measurements!"
+    );
     return;
   }
   FtParameters ft_calib_parameters;
   if (!ft_calibration_process_.get_parameters(ft_calib_parameters)) {
     response->success = false;
     response->message = "Failed to compute calibration parameters!";
-  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "get_calibration() service. Failed to compute the calibration parameters!"
+    );
+  }
+  else {
     response->ft_calibration = ft_calib_parameters.to_msg();
     response->success = true;
   }
@@ -209,6 +234,10 @@ void FtCalibrationNode::save_calibration(
   if (!ft_calibration_process_.get_parameters(ft_calib_parameters)) {
     response->success = false;
     response->message = "Failed to compute calibration parameters!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "save_calibration() service. Failed to compute calibration parameters!"
+    );
     return;
   }
   // Write to yaml file
@@ -221,6 +250,10 @@ void FtCalibrationNode::save_calibration(
   } else {
     response->success = false;
     response->message = "Failed to save calibration parameters to yaml file!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "save_calibration() service. Failed to save calibration parameters to yaml file!"
+    );
   }
 }
 
@@ -233,6 +266,10 @@ void FtCalibrationNode::reset(
   if (!update_parameters()) {
     response->success = false;
     response->message = "Invalid parameters!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Failled to reset the f/t calibration< Invalid parameter(s)/"
+    );
     return;
   }
   RCLCPP_INFO(
