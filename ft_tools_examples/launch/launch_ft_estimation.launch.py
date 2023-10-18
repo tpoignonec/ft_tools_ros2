@@ -47,7 +47,7 @@ def generate_launch_description():
             description='Start robot with fake hardware mirroring command to its states.',
         )
     )
-    
+
     description_package = LaunchConfiguration('description_package')
     description_file = LaunchConfiguration('description_file')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
