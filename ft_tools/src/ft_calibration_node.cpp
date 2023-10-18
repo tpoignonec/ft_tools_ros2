@@ -188,6 +188,8 @@ void FtCalibrationNode::add_calibration_sample(
     sensor_frame_wrt_ref_frame_.rotation().transpose() * gravity_in_reference_frame_;
   ft_calibration_process_.add_measurement(gravity_in_sensor_frame, raw_wrench_);
   // Return
+  response->message = std::string("Valid samples: ") + std::to_string(
+    ft_calibration_process_.get_number_measurements());
   response->success = true;
 }
 
