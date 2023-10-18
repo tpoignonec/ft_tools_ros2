@@ -10,6 +10,7 @@ from rclpy.node import Node
 from std_msgs.msg import Float64
 
 from std_srvs.srv import Trigger
+from ft_msgs.srv import GetCalibration
 
 # from https://github.com/tasada038/pyqt_ros2_app/tree/master
 
@@ -19,9 +20,9 @@ class MainWindow(QMainWindow):
 
         self.srv_calibration_namespace = '/ft_calibration_node'
         self.add_calibration_srv_name = '/add_calibration_sample'
-        self.get_calibration_srv_name = '/get_calibration_sample'
-        self.save_calibration_srv_name = '/save_calibration_sample'
-        self.reset_srv_name = '/reset'
+        self.get_calibration_srv_name = '/get_calibration'
+        self.save_calibration_srv_name = '/save_calibration'
+        self.reset_calibration_srv_name = '/reset'
 
         self.icon_path = "image/qt_ros_logo.png"
         self.ui = Ui_MainWindow()
@@ -31,7 +32,12 @@ class MainWindow(QMainWindow):
         self.show()
 
         self.ui.checkBox_calib_connect_ros.stateChanged.connect(self.connect_ros_calib)
+
         self.ui.pushButton_add_calib_sample.clicked.connect(self.callback_add_calibration_sample)
+        self.ui.pushButton_reset.clicked.connect(self.callback_reset_calibration)
+        self.ui.pushButton_get_calibration.clicked.connect(self.callback_get_calibration)
+        self.ui.pushButton_save_calibration.clicked.connect(self.callback_save_calibration)
+
         self.ui.label_service_namespace.setText(
             self.srv_calibration_namespace
         )
@@ -54,23 +60,25 @@ class MainWindow(QMainWindow):
                 while not self.cli_add_calibration_srv.wait_for_service(timeout_sec=5.0):
                     self.node.get_logger().info(f'Waiting for {add_calibration_srv_full_name} service...')
 
-                self.node.get_logger().info(f'Registering service "{self.get_calibration_srv_name}"...')
-                self.cli_add_calibration_srv = self.node.create_client(Trigger, add_calibration_srv_full_name)
-                while not self.cli_add_calibration_srv.wait_for_service(timeout_sec=5.0):
-                    self.node.get_logger().info(f'Waiting for {add_calibration_srv_full_name} service...')
+                get_calibration_srv_full_name = self.srv_calibration_namespace + self.get_calibration_srv_name
+                self.node.get_logger().info(f'Registering service "{get_calibration_srv_full_name}"...')
+                self.cli_get_calibration_srv = self.node.create_client(GetCalibration, get_calibration_srv_full_name)
+                while not self.cli_get_calibration_srv.wait_for_service(timeout_sec=5.0):
+                    self.node.get_logger().info(f'Waiting for {get_calibration_srv_full_name} service...')
+
+                save_calibration_srv_full_name = self.srv_calibration_namespace + self.save_calibration_srv_name
+                self.node.get_logger().info(f'Registering service "{save_calibration_srv_full_name}"...')
+                self.cli_save_calibration_srv = self.node.create_client(Trigger, save_calibration_srv_full_name)
+                while not self.cli_save_calibration_srv.wait_for_service(timeout_sec=5.0):
+                    self.node.get_logger().info(f'Waiting for {save_calibration_srv_full_name} service...')
+
+                reset_calibration_srv_full_name = self.srv_calibration_namespace + self.reset_calibration_srv_name
+                self.node.get_logger().info(f'Registering service "{reset_calibration_srv_full_name}"...')
+                self.cli_reset_calibration_srv = self.node.create_client(Trigger, reset_calibration_srv_full_name)
+                while not self.cli_reset_calibration_srv.wait_for_service(timeout_sec=5.0):
+                    self.node.get_logger().info(f'Waiting for {reset_calibration_srv_full_name} service...')
 
                 is_connected = True
-
-                '''
-                # spin once, timeout_sec 5[s]
-                timeout_sec_rclpy = 5
-                timeout_init = time.time()
-                rclpy.spin_once(self.node)
-                timeout_end = time.time()
-                ros_connect_time = timeout_end - timeout_init
-                is_connected = ros_connect_time >= timeout_sec_rclpy
-                '''
-
                 # Error Handle for rclpy timeout
                 if is_connected:
                     self.ui.label_ros2_state_calib.setText("Connected")
@@ -100,30 +108,63 @@ class MainWindow(QMainWindow):
             rclpy.shutdown()
 
     def callback_add_calibration_sample(self, state):
-        '''
-        if (Qt.Checked == state):
-            # create timer
-            self.timer = QTimer(self)
-            self.timer.timeout.connect(self.timer_float_update)
-            self.timer.start(10)
-        else:
-            self.timer.stop()
-        '''
-        res_service = self.add_calibration_sample()
-        self.ui.label_msg_string.setText(res_service.message)
-        self.show()
-
-    def add_calibration_sample(self):
-        #rclpy.spin_once(self.node)
-        '''
-        self.update_float_data_label()
-        self.show()
-        self.timer.start(10)
-        '''
         add_req = Trigger.Request()
         future_res = self.cli_add_calibration_srv.call_async(add_req)
         rclpy.spin_until_future_complete(self.node, future_res)
-        return future_res.result()
+        # Read result
+        res_service = future_res.result()
+        self.ui.label_msg_string.setText(res_service.message)
+        self.show()
+
+    def callback_reset_calibration(self, state):
+        add_req = Trigger.Request()
+        future_res = self.cli_reset_calibration_srv.call_async(add_req)
+        rclpy.spin_until_future_complete(self.node, future_res)
+        # Read result
+        res_service = future_res.result()
+        self.ui.label_msg_string.setText("")
+        self.show()
+
+    def callback_get_calibration(self, state):
+        get_req = GetCalibration.Request()
+        future_res = self.cli_get_calibration_srv.call_async(get_req)
+        rclpy.spin_until_future_complete(self.node, future_res)
+        # Read result
+        res_service = future_res.result()
+        # Print parameters
+        self.ui.label_calibration_mass.setText(str(res_service.ft_calibration.mass))
+        self.ui.label_calibration_com.setText(
+            str([
+                res_service.ft_calibration.sensor_frame_to_com.x,
+                res_service.ft_calibration.sensor_frame_to_com.y,
+                res_service.ft_calibration.sensor_frame_to_com.z
+            ])
+        )
+        self.ui.label_calibration_force_offsets.setText(
+            str([
+                res_service.ft_calibration.force_offset.x,
+                res_service.ft_calibration.force_offset.y,
+                res_service.ft_calibration.force_offset.z
+            ])
+        )
+        self.ui.label_calibration_torque_offsets.setText(
+            str([
+                res_service.ft_calibration.torque_offset.x,
+                res_service.ft_calibration.torque_offset.y,
+                res_service.ft_calibration.torque_offset.z
+            ])
+        )
+        #self.ui.label_msg_string.setText(res_service.message)
+        self.show()
+
+    def callback_save_calibration(self, state):
+        save_req = Trigger.Request()
+        future_res = self.cli_save_calibration_srv.call_async(save_req)
+        rclpy.spin_until_future_complete(self.node, future_res)
+        # Read result
+        res_service = future_res.result()
+        #self.ui.label_msg_string.setText("")
+        self.show()
 
     def change_add_calibration_srv_namespace(self):
         self.srv_calibration_namespace = self.ui.lineEdit_label_service_namespace.text()
