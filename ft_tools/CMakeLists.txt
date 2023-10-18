@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(generate_parameter_library REQUIRED)
 
 # TODO(tpoignone): split in deps lib / deps nodes...
 set(DEPENDENCIES
@@ -45,19 +46,39 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 ament_target_dependencies(${PROJECT_NAME} ${DEPENDENCIES})
 
+
+# Calibration srv server (node)
+add_executable(ft_calibration_srv_server
+  src/ft_calibration_srv_server.cpp
+)
+ament_target_dependencies(ft_calibration_srv_server ${DEPENDENCIES})
+target_include_directories(ft_calibration_srv_server PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+target_compile_features(ft_calibration_srv_server PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
+target_link_libraries(ft_calibration_srv_server ${PROJECT_NAME})
+
 # Calibration node
 add_executable(ft_calibration_node
   src/ft_calibration_node.cpp
   src/joint_state_monitor.cpp
 )
-ament_target_dependencies(ft_calibration_node ${DEPENDENCIES})
+ament_target_dependencies(ft_calibration_node PUBLIC ${DEPENDENCIES} generate_parameter_library)
 target_include_directories(ft_calibration_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  ${YAML_CPP_INCLUDEDIR}
 )
 target_compile_features(ft_calibration_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_link_libraries(ft_calibration_node ${PROJECT_NAME})
+generate_parameter_library(ft_calibration_node_parameters
+  src/ft_calibration_node_parameters.yaml
+)
+target_link_libraries(
+  ft_calibration_node
+  PUBLIC
+    ${PROJECT_NAME}
+    ft_calibration_node_parameters
+)
 
 
 # Estimation node
@@ -93,6 +114,7 @@ install(
 
 install(
   TARGETS
+    ft_calibration_srv_server
     ft_calibration_node
     ft_estimation_node
   DESTINATION

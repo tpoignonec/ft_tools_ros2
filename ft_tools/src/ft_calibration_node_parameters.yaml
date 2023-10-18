@@ -1,0 +1,60 @@
+ft_calibration_node:
+  calibration:
+    min_nb_samples: {
+      type: int,
+      default_value: 10,
+      description: "(optional) Specifies the minimal number of samples required (min 5).",
+      read_only: false
+    }
+    filename: {
+        type: string,
+        description: "Name of the file used to save the calibration results (N.B., in 'ft_tools/ressources').",
+        read_only: false
+      }
+    gravity_in_reference_frame: {
+      type: double_array,
+      description: "Gravity (signed 3D vector) expressed in reference frame, typically [0., 0., -9.81].",
+      read_only: true
+    }
+    reference_frame:
+      id: {
+        type: string,
+        description: "Reference frame of reference.",
+        read_only: true
+      }
+    sensor_frame:
+      id: {
+        type: string,
+        description: "Reference frame of the f/t sensor.",
+        read_only: true
+      }
+
+  kinematics:
+    plugin_name: {
+      type: string,
+      description: "Specifies the name of the kinematics plugin to load."
+    }
+    plugin_package: {
+      type: string,
+      description: "Specifies the package name that contains the kinematics plugin."
+    }
+    base: {
+      type: string,
+      description: "Specifies the base link of the robot description used by the kinematics plugin."
+    }
+    tip: {
+      type: string,
+      description: "Specifies the end effector link of the robot description used by the kinematics plugin."
+    }
+    alpha: {
+      type: double,
+      default_value: 0.01,
+      description: "Specifies the damping coefficient for the Jacobian pseudo inverse."
+    }
+
+  # general settings
+  robot_description: {
+    type: string,
+    description: "Contains robot description in URDF format. The description is used for forward and inverse kinematics.",
+    read_only: true
+  }
