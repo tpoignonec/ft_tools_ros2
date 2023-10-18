@@ -205,15 +205,12 @@ void FtCalibrationNode::save_calibration(
   }
   // Write to yaml file
   bool success = ft_calib_parameters.to_yaml(
-      parameters_.calibration.calibration_filename,
-      parameters_.calibration.calibration_package
+    parameters_.calibration.calibration_filename,
+    parameters_.calibration.calibration_package
   );
-  if(success)
-  {
+  if (success) {
     response->success = true;
-  }
-  else
-  {
+  } else {
     response->success = false;
     response->message = "Failed to save calibration parameters to yaml file!";
   }

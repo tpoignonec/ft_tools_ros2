@@ -60,6 +60,7 @@ public:
   Eigen::Vector3d com;
   Eigen::Vector3d force_offset;
   Eigen::Vector3d torque_offset;
+
 protected:
   std::string get_config_file_path(
     const std::string & config_filename,
