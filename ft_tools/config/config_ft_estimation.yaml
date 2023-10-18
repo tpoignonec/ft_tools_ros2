@@ -1,0 +1,26 @@
+wrench_estimator_node:
+  ros__parameters:
+    topic_raw_wrench: raw_wrench
+    topic_joint_state: joint_states
+    topic_estimated_wrench: ft_sensor_wrench
+    topic_interaction_wrench: ft_interaction_wrench
+
+    calibration:
+      min_nb_samples: 10
+      reference_frame:
+        id: base_link
+      sensor_frame:
+        id: ft_sensor
+      gravity_in_reference_frame: [0.0, 0.0, -9.81]
+      calibration_filename: calibration.yaml
+      calibration_package: ft_tools
+
+    interaction_frame: tool0
+
+    wrench_deadband:
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
+      - 0.0
