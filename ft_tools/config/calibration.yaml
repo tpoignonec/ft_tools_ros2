@@ -1,0 +1,4 @@
+mass: 0.0
+sensor_frame_to_com: [0.0, 0.0, 0.0]
+force_offset: [0.0, 0.0, 0.0]
+torque_offset: [0.0, 0.0, 0.0]

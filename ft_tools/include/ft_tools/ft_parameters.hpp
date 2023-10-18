@@ -39,8 +39,14 @@ public:
   /// Load parameters from YAML file
   bool from_yaml(const std::string & filename);
 
+  /// Load parameters from YAML file
+  bool from_yaml(const std::string & config_filename, const std::string & config_package);
+
   /// Dump parameters to YAML file
   bool to_yaml(const std::string & filename);
+
+  /// Dump parameters to YAML file
+  bool to_yaml(const std::string & config_filename, const std::string & config_package);
 
   /// Load parameters from msg
   bool from_msg(const ft_msgs::msg::FtCalibration & msg);
@@ -54,6 +60,12 @@ public:
   Eigen::Vector3d com;
   Eigen::Vector3d force_offset;
   Eigen::Vector3d torque_offset;
+
+protected:
+  std::string get_config_file_path(
+    const std::string & config_filename,
+    const std::string & config_package
+  );
 };
 
 }  // namespace ft_tools

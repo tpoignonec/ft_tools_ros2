@@ -5,14 +5,16 @@
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="thibault.poignonec@gmail.com">tpoignonec</maintainer>
-  <license>TODO: License declaration</license>
+  <license>Apache License 2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_test</buildtool_depend>
+  <buildtool_depend>generate_parameter_library</buildtool_depend>
 
   <depend>ft_msgs</depend>
 
   <depend>rclcpp</depend>
+  <depend>ament_index_cpp</depend>
   <depend>eigen3_cmake_module</depend>
   <depend>tf2_eigen</depend>
   <depend>tf2_eigen_kdl</depend>

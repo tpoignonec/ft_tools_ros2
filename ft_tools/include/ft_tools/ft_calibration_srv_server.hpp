@@ -14,8 +14,8 @@
 //
 // Author: Thibault Poignonec (thibault.poignonec@gmail.com)
 
-#ifndef FT_TOOLS__FT_CALIBRATION_NODE_HPP_
-#define FT_TOOLS__FT_CALIBRATION_NODE_HPP_
+#ifndef FT_TOOLS__FT_CALIBRATION_SRV_SERVER_HPP_
+#define FT_TOOLS__FT_CALIBRATION_SRV_SERVER_HPP_
 
 #include <Eigen/Core>
 
@@ -24,36 +24,24 @@
 
 #include <rclcpp/rclcpp.hpp>
 #include "std_srvs/srv/trigger.hpp"
-#include "kinematics_interface/kinematics_interface.hpp"
-#include "pluginlib/class_loader.hpp"
-
-#include <geometry_msgs/msg/wrench_stamped.hpp>
 
 #include "ft_tools/ft_calibration.hpp"
-#include "ft_tools/joint_state_monitor.hpp"
 #include "ft_msgs/srv/add_calibration_sample.hpp"
 #include "ft_msgs/srv/get_calibration.hpp"
-
-// include generated parameter library
-#include "ft_calibration_node_parameters.hpp"
 
 namespace ft_tools
 {
 
-class FtCalibrationNode : public rclcpp_lifecycle::LifecycleNode
+class FtCalibrationSrvServer : public rclcpp::Node
 {
 public:
-  FtCalibrationNode();
+  FtCalibrationSrvServer();
 
   bool update_parameters();
 
-  bool update_robot_state();
-
-  void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
-
   void add_calibration_sample(
-    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
-    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+    const std::shared_ptr<ft_msgs::srv::AddCalibrationSample::Request> request,
+    std::shared_ptr<ft_msgs::srv::AddCalibrationSample::Response> response);
 
   void get_calibration(
     const std::shared_ptr<ft_msgs::srv::GetCalibration::Request> request,
@@ -68,46 +56,22 @@ public:
     std::shared_ptr<std_srvs::srv::Trigger::Response> response);
 
 protected:
-  bool init_kinematics_monitoring();
-  bool register_services();
-
-  // Parameters management
-  std::shared_ptr<ft_calibration_node::ParamListener> parameter_handler_;
-  ft_calibration_node::Params parameters_;
-
-  /// Raw wrench measurements subscriber
-  rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr
-    raw_wrench_subscriber_{nullptr};
-
-  /// Joint state monitor (i.e., subscriber + utils)
-  ft_tools::JointStateMonitor robot_joint_state_monitor_;
-
-  /// Kinematics interface plugin loader
-  std::shared_ptr<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>>
-  kinematics_loader_;
-
-  /// Kinematics interface
-  std::unique_ptr<kinematics_interface::KinematicsInterface> kinematics_;
-
   // Services
-  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_add_calibration_;
+  rclcpp::Service<ft_msgs::srv::AddCalibrationSample>::SharedPtr srv_add_calibration_;
   rclcpp::Service<ft_msgs::srv::GetCalibration>::SharedPtr srv_get_calibration_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_save_calibration_;
   rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_reset_;
 
   // F/T calibration utils
+  unsigned int min_nb_samples_;
   FtCalibration ft_calibration_process_;
 
   // Data
-  Eigen::Vector3d gravity_in_reference_frame_;
-  geometry_msgs::msg::WrenchStamped msg_raw_wrench_;
-  Eigen::Matrix<double, 6, 1> raw_wrench_;
-  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
-  Eigen::Matrix<double, 6, 1> sensor_twist_wrt_robot_base_;
-  Eigen::Isometry3d ref_frame_wrt_robot_base_;
+  Eigen::Vector3d gravity_in_ref_frame_;
   Eigen::Isometry3d sensor_frame_wrt_ref_frame_;
+  Eigen::Matrix<double, 6, 1> raw_wrench_;
 };
 
 }  // namespace ft_tools
 
-#endif  // FT_TOOLS__FT_CALIBRATION_NODE_HPP_
+#endif  // FT_TOOLS__FT_CALIBRATION_SRV_SERVER_HPP_
