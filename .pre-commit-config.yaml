@@ -15,7 +15,8 @@
 #
 # See https://github.com/pre-commit/pre-commit
 
-# exclude:
+exclude: "ft_gui/ft_gui/ft_calibration_window.py"
+
 repos:
   # Standard hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
