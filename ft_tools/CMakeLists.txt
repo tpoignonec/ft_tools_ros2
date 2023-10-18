@@ -87,14 +87,21 @@ add_executable(ft_estimation_node
   src/ft_estimation_node.cpp
   src/joint_state_monitor.cpp
 )
-ament_target_dependencies(ft_estimation_node ${DEPENDENCIES})
+ament_target_dependencies(ft_estimation_node PUBLIC ${DEPENDENCIES} generate_parameter_library)
 target_include_directories(ft_estimation_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  ${YAML_CPP_INCLUDEDIR}
 )
 target_compile_features(ft_estimation_node PUBLIC c_std_99 cxx_std_17)  # Require C99 and C++17
-target_link_libraries(ft_estimation_node ${PROJECT_NAME})
+generate_parameter_library(ft_estimation_node_parameters
+  src/ft_estimation_node_parameters.yaml
+)
+target_link_libraries(
+  ft_estimation_node
+  PUBLIC
+    ${PROJECT_NAME}
+    ft_estimation_node_parameters
+)
 
 # INSTALL
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
