@@ -1,0 +1,101 @@
+ft_estimation_node:
+  topic_raw_wrench: {
+        type: string,
+        default_value: "raw_wrench",
+        description: "Name of the raw wrench topic.",
+        read_only: true
+      }
+  topic_estimated_wrench: {
+        type: string,
+        default_value: "estimated_wrench",
+        description: "Name of the estimated (output) wrench topic.",
+        read_only: true
+      }
+  topic_interaction_wrench: {
+        type: string,
+        default_value: "interaction_wrench",
+        description: "Name of the estimated (output) wrench topic.",
+        read_only: true
+      }
+  topic_joint_state: {
+        type: string,
+        default_value: "joint_states",
+        description: "Name of the joint states topic.",
+        read_only: true
+      }
+
+  calibration:
+    gravity_in_reference_frame: {
+      type: double_array,
+      default_value: [0., 0., -9.81],
+      description: "Gravity (signed 3D vector) expressed in reference frame, typically [0., 0., -9.81].",
+      read_only: false
+    }
+    reference_frame:
+      id: {
+        type: string,
+        description: "Reference frame of reference.",
+        read_only: true
+      }
+    sensor_frame:
+      id: {
+        type: string,
+        description: "Reference frame of the f/t sensor.",
+        read_only: true
+      }
+    calibration_filename: {
+        type: string,
+        default_value: "calibration.yaml",
+        description: "Name of the file used to save the calibration results (N.B., in '<calibration_package>/config/<calibration_filename>').",
+        read_only: false
+      }
+    calibration_package: {
+        type: string,
+        default_value: "calibration.yaml",
+        description: "Name of the packagecontaining the config folder. See 'calibration_filename' parameter.",
+        read_only: false
+      }
+
+  estimation:
+    interaction_frame:
+      id: {
+        type: string,
+        description: "Frame of the interaction with the environment.",
+        read_only: true
+      }
+    wrench_deadband: {
+      type: double_array,
+      default_value: [0., 0., 0., 0., 0., 0.],
+      description: "Wrench deadband to cope with (small) sensor noise.",
+      read_only: false
+    }
+
+  kinematics:
+    plugin_name: {
+      type: string,
+      description: "Specifies the name of the kinematics plugin to load."
+    }
+    plugin_package: {
+      type: string,
+      description: "Specifies the package name that contains the kinematics plugin."
+    }
+    base: {
+      type: string,
+      description: "Specifies the base link of the robot description used by the kinematics plugin."
+    }
+    tip: {
+      type: string,
+      description: "Specifies the end effector link of the robot description used by the kinematics plugin."
+    }
+    alpha: {
+      type: double,
+      default_value: 0.01,
+      description: "Specifies the damping coefficient for the Jacobian pseudo inverse."
+    }
+
+  # general settings
+  robot_description: {
+    type: string,
+    description: "Contains robot description in URDF format. The description is used for forward and inverse kinematics.",
+    read_only: true
+  }

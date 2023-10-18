@@ -112,7 +112,7 @@ def generate_launch_description():
         [
             FindPackageShare('ft_tools'),
             'config',
-            'iiwa_controllers.yaml',
+            'config_ft_estimation.yaml',
         ]
     )
     ft_calibration_node = Node(

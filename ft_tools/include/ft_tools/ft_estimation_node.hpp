@@ -29,6 +29,8 @@
 #include "kinematics_interface/kinematics_interface.hpp"
 #include "pluginlib/class_loader.hpp"
 
+// include generated parameter library
+#include "ft_estimation_node_parameters.hpp"
 
 namespace ft_tools
 {
@@ -43,6 +45,12 @@ public:
   bool update_robot_state();
 
 protected:
+  bool init_kinematics_monitoring();
+
+  // Parameters management
+  std::shared_ptr<ft_estimation_node::ParamListener> parameter_handler_;
+  ft_estimation_node::Params parameters_;
+
   rclcpp::TimerBase::SharedPtr timer_{nullptr};
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr
     estimated_sensor_wrench_publisher_{nullptr};
@@ -73,6 +81,7 @@ protected:
 
   // F/T estimation utils
   FtEstimation ft_estimation_process_;
+  Eigen::Matrix<double, 6, 1> wrench_deadband_;
 };
 
 }  // namespace ft_tools

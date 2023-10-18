@@ -27,158 +27,47 @@ namespace ft_tools
 {
 
 FtEstimationNode::FtEstimationNode()
-: LifecycleNode("ft_estimation_nodes")
+: LifecycleNode("ft_estimation_node")
 {
   bool all_ok = true;
-  std::string topic_namespace = "~/";
+  parameter_handler_ = std::make_shared<ft_estimation_node::ParamListener>(
+    this->get_node_parameters_interface()
+  );
+  parameters_ = parameter_handler_->get_params();
 
-  // Parameters for the node itself
-  this->declare_parameter<std::string>("topic_raw_wrench", topic_namespace + "raw_wrench");
-  this->declare_parameter<std::string>(
-    "topic_estimated_wrench",
-    topic_namespace + "estimated_wrench"
-  );
-  this->declare_parameter<std::string>(
-    "topic_interaction_wrench",
-    topic_namespace + "estimated_interaction_wrench"
-  );
-  this->declare_parameter<std::string>(
-    "topic_joint_state",
-    topic_namespace + "joint_states"
-  );
+  // all_ok &= update_parameters(); //  TODO(tpoignonec)
+  all_ok &= init_kinematics_monitoring();
 
-  this->declare_parameter<std::string>("robot_description", "");
-  this->declare_parameter<std::string>("reference_frame", "");
-  this->declare_parameter<std::string>("sensor_frame", "");
-  this->declare_parameter<std::string>("interaction_frame", "");
-
-  // Parameters for the wrench estimation process
-  this->declare_parameter<double>("calibration.mass", 0.0);
-  this->declare_parameter<std::vector<double>>(
-    "calibration.sensor_frame_to_com",
-    std::vector<double>()
-  );
-  this->declare_parameter<std::vector<double>>(
-    "calibration.force_offset",
-    std::vector<double>()
-  );
-  this->declare_parameter<std::vector<double>>(
-    "calibration.torque_offset",
-    std::vector<double>()
-  );
-  this->declare_parameter<std::vector<double>>(
-    "wrench_deadband",
-    std::vector<double>()
-  );
-  this->declare_parameter<std::vector<double>>(
-    "gravity_in_robot_base_frame", std::vector<double>()
-  );
-// read parameters
-  double mass = this->get_parameter("mass").as_double();
-  std::vector<double> param_deadband = this->get_parameter(
-    "wrench_deadband").as_double_array();
-  Eigen::Matrix<double, 6, 1> deadband = Eigen::Matrix<double, 6, 1>::Zero();
+  // read parameters
+  std::vector<double> param_deadband = parameters_.estimation.wrench_deadband;
   if (!param_deadband.empty() && param_deadband.size() != 6) {
     RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'deadband'");
     all_ok = false;
   } else if (param_deadband.size() == 6) {
-    deadband = Eigen::Map<Eigen::Matrix<double, 6, 1>>(param_deadband.data());
+    wrench_deadband_ = Eigen::Map<Eigen::Matrix<double, 6, 1>>(param_deadband.data());
   }
-  std::vector<double> param_sensor_frame_to_com = this->get_parameter(
-    "sensor_frame_to_com").as_double_array();
-  if (param_sensor_frame_to_com.size() != 3) {
-    RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'sensor_frame_to_com'");
-    all_ok = false;
-  }
-  Eigen::Vector3d sensor_frame_to_com(param_sensor_frame_to_com.data());
-
-  std::vector<double> param_gravity_in_robot_base_frame = this->get_parameter(
-    "gravity_in_robot_base_frame").as_double_array();
-  if (param_gravity_in_robot_base_frame.size() != 3) {
-    RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'gravity_in_robot_base_frame'");
-    all_ok = false;
-  }
-  Eigen::Vector3d gravity_in_robot_base_frame(param_gravity_in_robot_base_frame.data());
-
-  std::vector<double> param_force_offset = this->get_parameter(
-    "force_offset").as_double_array();
-  if (param_force_offset.size() != 3) {
-    RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'force_offset'");
-  }
-  Eigen::Vector3d force_offset(param_force_offset.data());
-
-  std::vector<double> param_torque_offset = this->get_parameter(
-    "torque_offset").as_double_array();
-  if (param_torque_offset.size() != 3) {
-    RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'torque_offset'");
-    all_ok = false;
-  }
-  Eigen::Vector3d torque_offset(param_torque_offset.data());
 
   // Retrieve reference, sensor, and interaction frames
-  reference_frame_ = this->get_parameter("reference_frame").as_string();
+  reference_frame_ = parameters_.calibration.reference_frame.id;
   RCLCPP_INFO(this->get_logger(), "'reference frame' : %s", reference_frame_.c_str());
-  sensor_frame_ = this->get_parameter("sensor_frame").as_string();
+  sensor_frame_ = parameters_.calibration.sensor_frame.id;
   RCLCPP_INFO(this->get_logger(), "'sensor frame' : %s", sensor_frame_.c_str());
-  interaction_frame_ = this->get_parameter("interaction_frame").as_string();
+  interaction_frame_ = parameters_.estimation.interaction_frame.id;
   RCLCPP_INFO(this->get_logger(), "'interaction frame' : %s", interaction_frame_.c_str());
   if (interaction_frame_.empty()) {
     interaction_frame_ = sensor_frame_;
   }
 
-  // Load the differential IK plugin
-  auto robot_description = this->get_parameter("robot_description").as_string();
-  if (!robot_description.empty()) {
-    try {
-      kinematics_loader_ =
-        std::make_shared<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>>(
-        this->get_parameter("kinematics.plugin_pkg").as_string(),
-        "kinematics_interface::KinematicsInterface");
-      kinematics_ = std::unique_ptr<kinematics_interface::KinematicsInterface>(
-        kinematics_loader_->createUnmanagedInstance(
-          this->get_parameter("kinematics.plugin_name").as_string()
-      ));
-      if (!kinematics_->initialize(this->get_node_parameters_interface(), sensor_frame_)) {
-        all_ok = false;
-      }
-    } catch (pluginlib::PluginlibException & ex) {
-      RCLCPP_ERROR(
-        this->get_logger(),
-        "Exception while loading the IK plugin '%s': '%s'",
-        this->get_parameter("kinematics.plugin_name").as_string().c_str(),
-        ex.what()
-      );
-      all_ok = false;
-    }
-  } else {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "A differential IK plugin name was not specified in the config file.");
-    all_ok = false;
-  }
-
-  // Monitor follower joints state
-  auto joint_state_topic = this->get_parameter("topic_joint_state").as_string();
-  RCLCPP_INFO(this->get_logger(), "'topic joint state' : %s", joint_state_topic.c_str());
-  all_ok &= robot_joint_state_monitor_.init(
-    std::shared_ptr<rclcpp_lifecycle::LifecycleNode>(this),
-    joint_state_topic
-  );
-
   // Init wrench estimator
-  std::string param_namespace("");
-
-  // init
   FtParameters ft_calib_parameters;
-  ft_calib_parameters.mass = mass;
-  ft_calib_parameters.com = sensor_frame_to_com;
-  ft_calib_parameters.force_offset = force_offset;
-  ft_calib_parameters.torque_offset = torque_offset;
-
+  all_ok &= ft_calib_parameters.from_yaml(
+    parameters_.calibration.calibration_filename,
+    parameters_.calibration.calibration_package
+  );
   interaction_frame_wrt_sensor_frame_.setIdentity();
   all_ok &= ft_estimation_process_.init(
     ft_calib_parameters,
-    deadband,
+    wrench_deadband_,
     interaction_frame_wrt_sensor_frame_
   );
 
@@ -186,18 +75,19 @@ FtEstimationNode::FtEstimationNode()
     // Create estimated wrench publisher(s)
     estimated_sensor_wrench_publisher_ =
       this->create_publisher<geometry_msgs::msg::WrenchStamped>(
-      this->get_parameter(
-        "topic_estimated_wrench").as_string(), 2);
+      parameters_.topic_estimated_wrench, 2
+      );
     estimated_interaction_wrench_publisher_ =
       this->create_publisher<geometry_msgs::msg::WrenchStamped>(
-      this->get_parameter(
-        "topic_interaction_wrench").as_string(), 2);
+      parameters_.topic_interaction_wrench, 2
+      );
     // Create raw wrench subscriber
     raw_wrench_subscriber_ =
       this->create_subscription<geometry_msgs::msg::WrenchStamped>(
-      this->get_parameter("topic_raw_wrench").as_string(),
+      parameters_.topic_raw_wrench,
       2,
-      std::bind(&FtEstimationNode::callback_new_raw_wrench, this, _1));
+      std::bind(&FtEstimationNode::callback_new_raw_wrench, this, _1)
+      );
   } else {
     RCLCPP_ERROR(
       this->get_logger(),
@@ -304,6 +194,66 @@ void FtEstimationNode::callback_new_raw_wrench(
   msg_interaction_wrench.header.stamp = msg_raw_wrench.header.stamp;
   fill_wrench_msg(estimated_interaction_wrench_in_interaction_frame, msg_interaction_wrench);
   estimated_interaction_wrench_publisher_->publish(msg_interaction_wrench);
+}
+
+bool FtEstimationNode::init_kinematics_monitoring()
+{
+  // Make sure it has not been initialized before
+  if (kinematics_loader_ || kinematics_ || raw_wrench_subscriber_) {
+    return false;
+  }
+  bool all_ok = true;
+  // Load the differential IK plugin
+  if (!parameters_.kinematics.plugin_name.empty()) {
+    try {
+      kinematics_loader_ =
+        std::make_shared<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>>(
+        parameters_.kinematics.plugin_package,
+        "kinematics_interface::KinematicsInterface");
+      kinematics_ = std::unique_ptr<kinematics_interface::KinematicsInterface>(
+        kinematics_loader_->createUnmanagedInstance(parameters_.kinematics.plugin_name));
+      if (!kinematics_->initialize(
+          this->get_node_parameters_interface(), parameters_.kinematics.tip))
+      {
+        all_ok &= false;
+      }
+    } catch (pluginlib::PluginlibException & ex) {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "Exception while loading the IK plugin '%s': '%s'",
+        parameters_.kinematics.plugin_name.c_str(), ex.what()
+      );
+      all_ok &= false;
+    }
+  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "A differential IK plugin name was not specified in the config file.");
+    all_ok &= false;
+  }
+
+  // Monitor follower joints state
+  RCLCPP_INFO(
+    this->get_logger(),
+    "'topic joint state' : %s", parameters_.topic_joint_state.c_str()
+  );
+  all_ok &= robot_joint_state_monitor_.init(
+    std::shared_ptr<rclcpp_lifecycle::LifecycleNode>(this),
+    parameters_.topic_joint_state);
+
+  if (all_ok) {
+    // Create raw wrench subscriber
+    raw_wrench_subscriber_ =
+      this->create_subscription<geometry_msgs::msg::WrenchStamped>(
+      parameters_.topic_raw_wrench,
+      2,
+      std::bind(&FtEstimationNode::callback_new_raw_wrench, this, _1));
+  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Failed to init the wrench estimator! Make sure the config and urdf files are correct.");
+  }
+  return all_ok;
 }
 
 }  // namespace ft_tools
