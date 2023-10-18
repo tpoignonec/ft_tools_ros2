@@ -213,8 +213,7 @@ void FtCalibrationNode::get_calibration(
       this->get_logger(),
       "get_calibration() service. Failed to compute the calibration parameters!"
     );
-  }
-  else {
+  } else {
     response->ft_calibration = ft_calib_parameters.to_msg();
     response->success = true;
   }
@@ -268,7 +267,7 @@ void FtCalibrationNode::reset(
     response->message = "Invalid parameters!";
     RCLCPP_ERROR(
       this->get_logger(),
-      "Failled to reset the f/t calibration< Invalid parameter(s)/"
+      "Failed to reset the f/t calibration< Invalid parameter(s)/"
     );
     return;
   }
