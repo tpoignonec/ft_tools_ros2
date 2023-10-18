@@ -75,9 +75,6 @@ protected:
   std::shared_ptr<ft_calibration_node::ParamListener> parameter_handler_;
   ft_calibration_node::Params parameters_;
 
-  // Topic names
-  std::string topic_raw_wrench_, topic_joint_state_;
-
   /// Raw wrench measurements subscriber
   rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr
     raw_wrench_subscriber_{nullptr};

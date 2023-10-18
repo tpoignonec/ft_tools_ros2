@@ -27,9 +27,6 @@ namespace ft_tools
 FtCalibrationNode::FtCalibrationNode()
 : LifecycleNode("ft_calibration_node")
 {
-  topic_raw_wrench_ = "raw_wrench";
-  topic_joint_state_ = "joint_states";
-
   bool all_ok = true;
   parameter_handler_ = std::make_shared<ft_calibration_node::ParamListener>(
     this->get_node_parameters_interface());
@@ -253,16 +250,19 @@ bool FtCalibrationNode::init_kinematics_monitoring()
   }
 
   // Monitor follower joints state
-  RCLCPP_INFO(this->get_logger(), "'topic joint state' : %s", topic_joint_state_.c_str());
+  RCLCPP_INFO(
+    this->get_logger(),
+    "'topic joint state' : %s", parameters_.topic_joint_state.c_str()
+  );
   all_ok &= robot_joint_state_monitor_.init(
     std::shared_ptr<rclcpp_lifecycle::LifecycleNode>(this),
-    topic_joint_state_);
+    parameters_.topic_joint_state);
 
   if (all_ok) {
     // Create raw wrench subscriber
     raw_wrench_subscriber_ =
       this->create_subscription<geometry_msgs::msg::WrenchStamped>(
-      topic_raw_wrench_,
+      parameters_.topic_raw_wrench,
       2,
       std::bind(&FtCalibrationNode::callback_new_raw_wrench, this, _1));
   } else {

@@ -1,4 +1,17 @@
 ft_calibration_node:
+  topic_raw_wrench: {
+        type: string,
+        default_value: "raw_wrench",
+        description: "Name of the raw wrench topic.",
+        read_only: true
+      }
+  topic_joint_state: {
+        type: string,
+        default_value: "joint_states",
+        description: "Name of the joint states topic.",
+        read_only: true
+      }
+
   calibration:
     min_nb_samples: {
       type: int,
@@ -8,13 +21,15 @@ ft_calibration_node:
     }
     filename: {
         type: string,
+        default_value: "calibration.yaml",
         description: "Name of the file used to save the calibration results (N.B., in 'ft_tools/ressources').",
         read_only: false
       }
     gravity_in_reference_frame: {
       type: double_array,
+      default_value: [0., 0., -9.81],
       description: "Gravity (signed 3D vector) expressed in reference frame, typically [0., 0., -9.81].",
-      read_only: true
+      read_only: false
     }
     reference_frame:
       id: {
