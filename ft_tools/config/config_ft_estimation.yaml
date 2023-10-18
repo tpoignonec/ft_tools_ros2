@@ -1,4 +1,4 @@
-wrench_estimator_node:
+ft_estimation_node:
   ros__parameters:
     topic_raw_wrench: raw_wrench
     topic_joint_state: joint_states
@@ -6,7 +6,6 @@ wrench_estimator_node:
     topic_interaction_wrench: ft_interaction_wrench
 
     calibration:
-      min_nb_samples: 10
       reference_frame:
         id: base_link
       sensor_frame:
@@ -15,12 +14,20 @@ wrench_estimator_node:
       calibration_filename: calibration.yaml
       calibration_package: ft_tools
 
-    interaction_frame: tool0
+    estimation:
+      interaction_frame:
+        id: tool0
+      wrench_deadband:
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
+        - 0.0
 
-    wrench_deadband:
-      - 0.0
-      - 0.0
-      - 0.0
-      - 0.0
-      - 0.0
-      - 0.0
+    kinematics:
+      plugin_name: kinematics_interface_kdl/KinematicsInterfaceKDL
+      plugin_package: kinematics_interface
+      base: base_link
+      tip: tool0
+      alpha: 0.0005

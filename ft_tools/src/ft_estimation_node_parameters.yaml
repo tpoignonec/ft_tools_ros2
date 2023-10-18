@@ -60,7 +60,7 @@ ft_estimation_node:
     interaction_frame:
       id: {
         type: string,
-        description: "Frame of the interaction with the environement.",
+        description: "Frame of the interaction with the environment.",
         read_only: true
       }
     wrench_deadband: {

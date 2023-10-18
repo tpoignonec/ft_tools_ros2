@@ -27,17 +27,18 @@ namespace ft_tools
 {
 
 FtEstimationNode::FtEstimationNode()
-: LifecycleNode("ft_estimation_nodes")
+: LifecycleNode("ft_estimation_node")
 {
   bool all_ok = true;
   parameter_handler_ = std::make_shared<ft_estimation_node::ParamListener>(
-    this->get_node_parameters_interface());
+    this->get_node_parameters_interface()
+  );
   parameters_ = parameter_handler_->get_params();
 
-  // all_ok &= update_parameters();
+  // all_ok &= update_parameters(); //  TODO(tpoignonec)
   all_ok &= init_kinematics_monitoring();
 
-// read parameters
+  // read parameters
   std::vector<double> param_deadband = parameters_.estimation.wrench_deadband;
   if (!param_deadband.empty() && param_deadband.size() != 6) {
     RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'deadband'");
