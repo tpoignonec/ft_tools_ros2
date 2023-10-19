@@ -122,9 +122,7 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
   Save the estimated parameters to a YAML file.
 
   The destination  file is
-
-  > `<calibration_package_share_dir>/config/<calibration_filename>`
-
+  `<calibration_package_share_dir>/config/<calibration_filename>`.
   It can be tuned with the parameters:
 
   ```yaml
