@@ -21,6 +21,7 @@
 #include <tf2_eigen_kdl/tf2_eigen_kdl.hpp>
 
 using std::placeholders::_1;
+using std::placeholders::_2;
 using namespace std::chrono_literals;
 
 namespace ft_tools
@@ -34,18 +35,8 @@ FtEstimationNode::FtEstimationNode()
     this->get_node_parameters_interface()
   );
   parameters_ = parameter_handler_->get_params();
-
-  // all_ok &= update_parameters(); //  TODO(tpoignonec)
+  all_ok &= update_parameters();
   all_ok &= init_kinematics_monitoring();
-
-  // read parameters
-  std::vector<double> param_deadband = parameters_.estimation.wrench_deadband;
-  if (!param_deadband.empty() && param_deadband.size() != 6) {
-    RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'deadband'");
-    all_ok = false;
-  } else if (param_deadband.size() == 6) {
-    wrench_deadband_ = Eigen::Map<Eigen::Matrix<double, 6, 1>>(param_deadband.data());
-  }
 
   // Retrieve reference, sensor, and interaction frames
   reference_frame_ = parameters_.calibration.reference_frame.id;
@@ -71,6 +62,10 @@ FtEstimationNode::FtEstimationNode()
     interaction_frame_wrt_sensor_frame_
   );
 
+  // Register services
+  all_ok &= register_services();
+
+  // Register subscribers
   if (all_ok) {
     // Create estimated wrench publisher(s)
     estimated_sensor_wrench_publisher_ =
@@ -93,6 +88,29 @@ FtEstimationNode::FtEstimationNode()
       this->get_logger(),
       "Failed to init the wrench estimator! Make sure the config and urdf files are correct.");
   }
+}
+
+bool FtEstimationNode::update_parameters()
+{
+  bool all_ok = true;
+  if (parameter_handler_->is_old(parameters_)) {
+    // Refresh parameters
+    parameters_ = parameter_handler_->get_params();
+    // Update deadband
+    std::vector<double> param_deadband = parameters_.estimation.wrench_deadband;
+    if (!param_deadband.empty() && param_deadband.size() != 6) {
+      RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'deadband'");
+      all_ok = false;
+    } else if (param_deadband.size() == 6) {
+      wrench_deadband_ = Eigen::Map<Eigen::Matrix<double, 6, 1>>(param_deadband.data());
+    }
+  }
+  if (!all_ok) {
+    RCLCPP_WARN(
+      this->get_logger(),
+      "The node parameters update failed!");
+  }
+  return all_ok;
 }
 
 
@@ -138,6 +156,8 @@ bool FtEstimationNode::update_robot_state()
   if (success) {
     sensor_frame_wrt_ref_frame_ = \
       sensor_frame_wrt_robot_base_ * ref_frame_wrt_robot_base_.inverse();
+    interaction_frame_wrt_ref_frame_ = \
+      interaction_frame_wrt_robot_base_ * ref_frame_wrt_robot_base_.inverse();
     interaction_frame_wrt_sensor_frame_ = \
       interaction_frame_wrt_robot_base_ * sensor_frame_wrt_robot_base_.inverse();
   }
@@ -149,15 +169,22 @@ bool FtEstimationNode::update_robot_state()
 void FtEstimationNode::callback_new_raw_wrench(
   const geometry_msgs::msg::WrenchStamped & msg_raw_wrench)
 {
+  if (!update_parameters()) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Abort estimation, could not load the parameters!");
+    return;
+  }
+
   // TODO(tpoignonec): check kinematics timeout!
-  bool kinematics_ok = update_robot_state();  // temporary...
+  bool kinematics_ok = update_robot_state();    // temporary...
   kinematics_ok &= ft_estimation_process_.set_interaction_frame_to_sensor_frame(
     interaction_frame_wrt_sensor_frame_
   );
 
   if (!kinematics_ok) {
-    // auto clock = this->get_clock();
-    // RCLCPP_WARN_THROTTLE(this->get_logger(), clock, 1000, "Failed to update robot kinematics!");
+    auto clock = this->get_clock();
+    RCLCPP_WARN_THROTTLE(this->get_logger(), *clock, 1000, "Failed to update robot kinematics!");
     return;
   }
 
@@ -188,11 +215,19 @@ void FtEstimationNode::callback_new_raw_wrench(
 
   Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_interaction_frame =
     ft_estimation_process_.get_estimated_interaction_wrench();
-
+  // Express in reference frame
+  Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_refrence_frame;
+  estimated_interaction_wrench_in_refrence_frame.head(3) = \
+    interaction_frame_wrt_ref_frame_.rotation() * \
+    estimated_interaction_wrench_in_interaction_frame.head(3);
+  estimated_interaction_wrench_in_refrence_frame.tail(3) = \
+    interaction_frame_wrt_ref_frame_.rotation() * \
+    estimated_interaction_wrench_in_interaction_frame.tail(3);
+  // Publish interaction wrench
   geometry_msgs::msg::WrenchStamped msg_interaction_wrench;
-  msg_interaction_wrench.header.frame_id = interaction_frame_;
+  fill_wrench_msg(estimated_interaction_wrench_in_refrence_frame, msg_interaction_wrench);
+  msg_interaction_wrench.header.frame_id = reference_frame_;
   msg_interaction_wrench.header.stamp = msg_raw_wrench.header.stamp;
-  fill_wrench_msg(estimated_interaction_wrench_in_interaction_frame, msg_interaction_wrench);
   estimated_interaction_wrench_publisher_->publish(msg_interaction_wrench);
 }
 
@@ -254,6 +289,142 @@ bool FtEstimationNode::init_kinematics_monitoring()
       "Failed to init the wrench estimator! Make sure the config and urdf files are correct.");
   }
   return all_ok;
+}
+
+bool FtEstimationNode::register_services()
+{
+  // Make sure it has not been initialized before
+  if (
+    srv_get_calibration_ || \
+    srv_set_calibration_ || \
+    srv_save_calibration_ || \
+    srv_reload_calibration_)
+  {
+    return false;
+  }
+  bool all_ok = true;
+  // Register services
+  std::string node_name = this->get_name();
+  srv_get_calibration_ = this->create_service<ft_msgs::srv::GetCalibration>(
+    node_name + "/get_calibration",
+    std::bind(&FtEstimationNode::get_calibration, this, _1, _2)
+  );
+  srv_set_calibration_ = this->create_service<ft_msgs::srv::SetCalibration>(
+    node_name + "/set_calibration",
+    std::bind(&FtEstimationNode::set_calibration, this, _1, _2)
+  );
+  srv_save_calibration_ = this->create_service<std_srvs::srv::Trigger>(
+    node_name + "/save_calibration",
+    std::bind(&FtEstimationNode::save_calibration, this, _1, _2)
+  );
+  srv_reload_calibration_ = this->create_service<std_srvs::srv::Trigger>(
+    node_name + "/reload_calibration",
+    std::bind(&FtEstimationNode::reload_calibration, this, _1, _2)
+  );
+  return all_ok;
+}
+
+// Service callbacks
+void FtEstimationNode::set_calibration(
+  const std::shared_ptr<ft_msgs::srv::SetCalibration::Request> request,
+  std::shared_ptr<ft_msgs::srv::SetCalibration::Response> response)
+{
+  FtParameters ft_calib_parameters;
+  bool all_ok = ft_calib_parameters.from_msg(request->ft_calibration);
+  if (!update_parameters()) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Abort set_calibration(), could not load the parameters!");
+  } else {
+    all_ok &= ft_estimation_process_.set_parameters(
+      ft_calib_parameters,
+      wrench_deadband_,
+      interaction_frame_wrt_sensor_frame_
+    );
+  }
+  // Return response
+  response->success = all_ok;
+}
+
+void FtEstimationNode::get_calibration(
+  const std::shared_ptr<ft_msgs::srv::GetCalibration::Request> request,
+  std::shared_ptr<ft_msgs::srv::GetCalibration::Response> response)
+{
+  FtParameters ft_calib_parameters = ft_estimation_process_.get_ft_calibration();
+  response->ft_calibration = ft_calib_parameters.to_msg();
+  response->success = true;
+}
+
+void FtEstimationNode::save_calibration(
+  const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+  std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+{
+  RCLCPP_INFO(
+    this->get_logger(),
+    "Saving the ft_calibration..."
+  );
+  (void)request;
+  bool all_ok = true;
+  // Retrieve parameters
+  FtParameters ft_calib_parameters = ft_estimation_process_.get_ft_calibration();
+  // Write to yaml file
+  if (!update_parameters()) {
+    all_ok = false;
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Abort save_calibration(), could not load the parameters!");
+  } else {
+    all_ok = ft_calib_parameters.to_yaml(
+      parameters_.calibration.calibration_filename,
+      parameters_.calibration.calibration_package
+    );
+  }
+  // Return response
+  if (all_ok) {
+    response->success = true;
+  } else {
+    response->success = false;
+    response->message = "Failed to save calibration parameters to yaml file!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "save_calibration() service. Failed to save calibration parameters to yaml file!"
+    );
+  }
+}
+
+void FtEstimationNode::reload_calibration(
+  const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+  std::shared_ptr<std_srvs::srv::Trigger::Response> response)
+{
+  bool all_ok = true;
+  FtParameters ft_calib_parameters;
+  if (!update_parameters()) {
+    all_ok = false;
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "Abort save_calibration(), could not load the parameters!");
+  } else {
+    all_ok &= ft_calib_parameters.from_yaml(
+      parameters_.calibration.calibration_filename,
+      parameters_.calibration.calibration_package
+    );
+    all_ok &= ft_estimation_process_.set_parameters(
+      ft_calib_parameters,
+      wrench_deadband_,
+      interaction_frame_wrt_sensor_frame_
+    );
+  }
+  // Return response
+  if (all_ok) {
+    response->success = true;
+  } else {
+    response->success = false;
+    response->message = "Failed to load calibration parameters from yaml file!";
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "reload_calibration() service. Failed to load calibration parameters from yaml file!"
+    );
+  }
 }
 
 }  // namespace ft_tools

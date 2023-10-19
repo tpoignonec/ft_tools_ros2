@@ -106,9 +106,16 @@ def generate_launch_description():
         parameters=[robot_description, ft_calibration_node_config],
         output='both',
     )
+    ft_calibration_gui_node = Node(
+        package='ft_gui',
+        executable='ft_calibration_gui',
+        namespace='',
+        output='both',
+    )
 
     nodes = [
         ft_calibration_node,
+        ft_calibration_gui_node
     ]
 
     return LaunchDescription(declared_arguments + nodes)
