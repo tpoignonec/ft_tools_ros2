@@ -1,4 +1,4 @@
-name: Build and Test (humble)
+name: CI (rolling)
 on:
   push:
     branches: [ main ]
