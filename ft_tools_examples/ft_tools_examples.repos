@@ -1,0 +1,5 @@
+repositories:
+    iiwa_ros2:
+        type: git
+        url: https://github.com/ICube-Robotics/iiwa_ros2.git
+        version: main

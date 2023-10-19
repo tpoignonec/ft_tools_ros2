@@ -81,12 +81,104 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
 
 - Apply wrench deadband on ${}^{ee}f_\text{est}$ and ${}^{ee}\tau_\text{est}$ (optional)
 
-## Basic GUI
+
+# Convenience nodes
+
+## F/T calibration node
+
+### Topics
+
+- `~/joint_states` (input topic) [`sensor_msgs::msg::JointState`]
+
+  Joint states of the robot used to monitor the cartesian pose of the robot.
+
+- `~/raw_wrench` (input topic) [`geometry_msgs::msg::Wrench`]
+
+  Raw (can be filtered) wrench measurement by the f/t sensor, expressed in the sensor frame.
+
+### Services
+
+- `~/ft_calibration_node/add_calibration_sample` [`std_srvs::srv::Trigger`]
+
+  Add a calibration sample using the latest robot pose and measured wrench.
+
+  The service call will return `success = false` in the following cases:
+  - faillure to update robot pose;
+  - stale wrench measurement (older than 1s);
+  - wrench measurement not expressed in supported frame;
+  - invalid parameters.
+
+- `~/ft_calibration_node/get_calibration` [`ft_msgs::srv::GetCalibration`]
+
+  If enough samples were collected, returns the computed calibration parameters as a `ft_msgs::srv::FtCalibration` msg.
+
+  The service call will return `success = false` in the following cases:
+  - not enough measurements;
+  - failure to solve the identification problem;
+  - invalid parameters.
+
+- `~/ft_calibration_node/save_calibration` [`std_srvs::srv::Trigger`]
+
+  Save the estimated parameters to a YAML file.
+
+  The destination  file is
+
+  > `<calibration_package_share_dir>/config/<calibration_filename>`
+
+  It can be tuned with the parameters:
+
+  ```yaml
+    ft_calibration_node:
+    ros__parameters:
+        ...
+        calibration:
+        ...
+        calibration_filename: calibration.yaml
+        calibration_package: ft_tools
+    ...
+   ```
+
+- `~/ft_calibration_node/reset` [`std_srvs::srv::Trigger`]
+
+  Reset calibration procedure.
+
+## Wrench estimation node
 
 
-## Examples
+# Basic GUI
 
-## References
 
-References:
+# Examples
+
+## Moveit2-assisted F/T calibration
+
+1) Install third-party utils for `ft_tools_examples`
+```shell
+source /opt/ros/humble/setup.bash
+cd <ws>/src
+rosdep install --ignore-src --from-paths . -y -r
+vcs import . < ft_tools_ros2/ft_tools_examples/ft_tools_examples.repos
+cd ..
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install
+```
+
+2) Launch
+```shell
+source install/local_setup.bash
+ros2 launch ft_tools_example launch_moveit_ft_calibration.launch
+```
+
+3) Move robot with moveit rviz2 plugin and use GUI to perform calibration
+
+## F/T calibration during comanipulation
+
+TODO
+
+
+## Wrench estimation for Cartesian admittance control
+
+TODO
+
+# References
+
 - [1] D. Kubus, T. Kroger and F. M. Wahl, "On-line rigid object recognition and pose estimation based on inertial parameters," 2007 IEEE/RSJ International Conference on Intelligent Robots and Systems, 2007, pp. 1402-1408, doi: 10.1109/IROS.2007.4399184.
