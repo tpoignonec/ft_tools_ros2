@@ -56,7 +56,7 @@ public:
     const Eigen::Isometry3d & interaction_frame_to_sensor_frame
   );
 
-  const FtParameters & get_ft_calibartion();
+  const FtParameters & get_ft_calibration();
   const Eigen::Matrix<double, 6, 1> & get_deadband();
   const Eigen::Isometry3d & get_transformation_interaction_to_sensor();
 

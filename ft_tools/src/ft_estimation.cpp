@@ -91,7 +91,7 @@ bool FtEstimation::set_interaction_frame_to_sensor_frame(
 }
 
 
-const FtParameters & FtEstimation::get_ft_calibartion()
+const FtParameters & FtEstimation::get_ft_calibration()
 {
   return ft_calib_parameters_;
 }

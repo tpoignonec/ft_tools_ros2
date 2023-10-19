@@ -22,9 +22,12 @@
 
 #include "ft_tools/ft_estimation.hpp"
 #include "ft_tools/joint_state_monitor.hpp"
+#include "ft_msgs/srv/get_calibration.hpp"
+#include "ft_msgs/srv/set_calibration.hpp"
 
 #include <rclcpp/rclcpp.hpp>
 #include <geometry_msgs/msg/wrench_stamped.hpp>
+#include "std_srvs/srv/trigger.hpp"
 
 #include "kinematics_interface/kinematics_interface.hpp"
 #include "pluginlib/class_loader.hpp"
@@ -40,11 +43,32 @@ class FtEstimationNode : public rclcpp_lifecycle::LifecycleNode
 public:
   FtEstimationNode();
 
+  bool update_parameters();
+
   void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
 
   bool update_robot_state();
 
+  // Service callbacks
+  void set_calibration(
+    const std::shared_ptr<ft_msgs::srv::SetCalibration::Request> request,
+    std::shared_ptr<ft_msgs::srv::SetCalibration::Response> response);
+
+  void get_calibration(
+    const std::shared_ptr<ft_msgs::srv::GetCalibration::Request> request,
+    std::shared_ptr<ft_msgs::srv::GetCalibration::Response> response);
+
+  void save_calibration(
+    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+
+  void reload_calibration(
+    const std::shared_ptr<std_srvs::srv::Trigger::Request> request,
+    std::shared_ptr<std_srvs::srv::Trigger::Response> response);
+
 protected:
+  bool register_services();
+
   bool init_kinematics_monitoring();
 
   // Parameters management
@@ -79,6 +103,12 @@ protected:
 
   /// Kinematics interface
   std::unique_ptr<kinematics_interface::KinematicsInterface> kinematics_;
+
+  // Services
+  rclcpp::Service<ft_msgs::srv::SetCalibration>::SharedPtr srv_set_calibration_;
+  rclcpp::Service<ft_msgs::srv::GetCalibration>::SharedPtr srv_get_calibration_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_save_calibration_;
+  rclcpp::Service<std_srvs::srv::Trigger>::SharedPtr srv_reload_calibration_;
 
   // F/T estimation utils
   FtEstimation ft_estimation_process_;

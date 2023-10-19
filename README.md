@@ -173,15 +173,26 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
 
 ### Services
 
-- `~/ft_calibration_node/set_calibration` [`ft_msgs::srv::SetCalibration`]
+- `~/ft_estimation_node/set_calibration` [`ft_msgs::srv::SetCalibration`]
 
   Set f/t sensor calibration parameters from a `ft_msgs::srv::FtCalibration` msg.
 
-- `~/ft_calibration_node/save_calibration` [`std_srvs::srv::Trigger`]
+- `~/ft_estimation_node/get_calibration` [`ft_msgs::srv::GetCalibration`]
+
+  See `~/ft_calibration_node/get_calibration` for details.
+
+- `~/ft_estimation_node/save_calibration` [`std_srvs::srv::Trigger`]
 
   See `~/ft_calibration_node/save_calibration` for details.
 
+- `~/ft_estimation_node/reload_calibration` [`std_srvs::srv::Trigger`]
+
+  Reload calibration from config YAML file.
+
 # Basic GUI
+
+Although everything can be done from RQT (i.e., using the service caller), a basic GUI is provided for convenience.
+Note that the GUI only has limited features and is overall not very robust to mishandling...
 
 ## Perform calibration
 
@@ -201,6 +212,9 @@ Also, the `Get calibration` button will retrieve the estimated calibration param
 
 ![Image not found!](ft_gui/doc/gui_images/gui_tab_2.png "Screenshot of the second tab of thegui.")
 
+## Set wrench estimator calibration parameters
+
+TODO
 
 # Examples
 
