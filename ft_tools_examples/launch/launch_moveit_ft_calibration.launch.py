@@ -112,7 +112,7 @@ def generate_launch_description():
         [
             FindPackageShare('ft_tools'),
             'config',
-            'config_ft_estimation.yaml',
+            'config_ft_calibration.yaml',
         ]
     )
     ft_calibration_node = Node(
