@@ -3,7 +3,12 @@ Wrench estimation and calibration of F/T sensor for ROS2 applications.
 
 
 [![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml)
+
+
+
+[![Build and Test (humble)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml)
+[![Build and Test (iron)](../../actions/workflows/build_and_test_iron.yaml/badge.svg?branch=rolling)](../../actions/workflows/build_and_test_iron.yaml?query=branch:main)
+[![Build and Test (rolling)](../../actions/workflows/build_and_test_rolling.yaml/badge.svg?branch=rolling)](../../actions/workflows/build_and_test_rolling.yaml?query=branch:main)
 
 ***The current devs are based on the humble ROS 2 distribution (Ubuntu 22.04 LTS)***
 
