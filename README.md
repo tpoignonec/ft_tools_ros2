@@ -28,7 +28,7 @@ The parameters can be loaded:
 
 ```cpp
 ft_tools::FtParameters ft_parameters
-// Load parameters from YAML file (absolut path)
+// Load parameters from YAML file (absolute path)
 const std::string filename("...")
 bool ok = ft_parameters.from_yaml(filename);
 // or from a config folder
@@ -49,9 +49,9 @@ The parameters can likewise be written to dump to a yaml file or sent as a msg.
 
 ### FT calibration
 
-The [ft_tools::FtCalibration](ft_tools/include/ft_tools/ft_calibration.hpp) implements a simple sensor calibration method [1] using a least square regression (i.e. eigen SVD solver).
+The [ft_tools::FtCalibration](ft_tools/include/ft_tools/ft_calibration.hpp) implements a simple sensor calibration method [1] using a least square regression (i.e., eigen SVD solver).
 
-We are given a N sets of measurements $\left( g, f, \tau \right)$ expressed in the sensor frame of reference where $g \in \mathbb{R}^3$ is the (signed) gravity and $f, \tau \in \mathbb{R}^3$ are the raw force and torque, respectively.
+We are given N sets of measurements $\left( g, f, \tau \right)$ expressed in the sensor frame of reference where $g \in \mathbb{R}^3$ is the (signed) gravity and $f, \tau \in \mathbb{R}^3$ are the raw force and torque, respectively.
 
 We want to retrieve the F/T sensor calibration that consists in
 - the mass $m$ in Kg
@@ -59,11 +59,11 @@ We want to retrieve the F/T sensor calibration that consists in
 - the force offset $f_0 \in \mathbb{R}^3$ in N
 - the torque offset $\tau_0 \in \mathbb{R}^3$ in N.m
 
-If enough measurements were provided (i.e., about 6-10 well chosen robot poses), the different parameters are identified sing a least square regression (i.e. eigen SVD solver) such that
+If enough measurements were provided (i.e., about 6-10 well-chosen robot poses), the different parameters are identified sing a least square regression (i.e., eigen SVD solver) such that
 
 $$ f_\text{meas} = -mg + f_0 \text{ and } \tau_\text{meas} = -mc \times g + \tau_0$$
 
-This process return a `ft_tools::FtParameters` object.
+This process returns a `ft_tools::FtParameters` object.
 
 **Credits:** the code is inspired by the ROS1 package [force_torque_tools](https://github.com/kth-ros-pkg/force_torque_tools).
 
@@ -90,9 +90,9 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
 
 - `~/joint_states` (input topic) [`sensor_msgs::msg::JointState`]
 
-  Joint states of the robot used to monitor the cartesian pose of the robot.
+  Joint states of the robot used to monitor the Cartesian pose of the robot.
 
-- `~/raw_wrench` (input topic) [`geometry_msgs::msg::Wrench`]
+- `~/raw_wrench` (input topic) [`geometry_msgs::msg::WrenchStamped`]
 
   Raw (can be filtered) wrench measurement by the f/t sensor, expressed in the sensor frame.
 
@@ -103,7 +103,7 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
   Add a calibration sample using the latest robot pose and measured wrench.
 
   The service call will return `success = false` in the following cases:
-  - faillure to update robot pose;
+  - failure to update robot pose;
   - stale wrench measurement (older than 1s);
   - wrench measurement not expressed in supported frame;
   - invalid parameters.
@@ -143,6 +143,38 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
 ## Wrench estimation node
 
 
+### Topics
+
+- `~/joint_states` (input topic) [`sensor_msgs::msg::JointState`]
+
+  Joint states of the robot used to monitor the Cartesian pose of the robot.
+
+- `~/raw_wrench` (input topic) [`geometry_msgs::msg::WrenchStamped`]
+
+  Raw (can be filtered) wrench measurement by the f/t sensor, expressed in the sensor frame.
+
+- `~/estimated_wrench` (output topic) [`geometry_msgs::msg::WrenchStamped`]
+
+  Estimated wrench expressed in the sensor frame with:
+    - gravity compensation;
+    - sensor offsets compensation;
+    - deadband.
+
+- `~/interaction_wrench` (output topic) [`geometry_msgs::msg::WrenchStamped`]
+
+  Estimated interaction wrench at `interaction_frame` expressed in the `reference_frame`.
+  The interaction is computed from the `estimated_wrench` above.
+
+### Services
+
+- `~/ft_calibration_node/set_calibration` [`ft_msgs::srv::SetCalibration`]
+
+  Set f/t sensor calibration parameters from a `ft_msgs::srv::FtCalibration` msg.
+
+- `~/ft_calibration_node/save_calibration` [`std_srvs::srv::Trigger`]
+
+  See `~/ft_calibration_node/save_calibration` for details.
+
 # Basic GUI
 
 
@@ -150,7 +182,7 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
 
 ## Moveit2-assisted F/T calibration
 
-1) Install third-party utils for `ft_tools_examples`
+1) Install third party utils for `ft_tools_examples`
 ```shell
 source /opt/ros/humble/setup.bash
 cd <ws>/src
