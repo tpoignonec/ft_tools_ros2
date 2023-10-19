@@ -68,6 +68,7 @@ protected:
 
   Eigen::Isometry3d sensor_frame_wrt_ref_frame_;
   Eigen::Isometry3d interaction_frame_wrt_sensor_frame_;
+  Eigen::Isometry3d interaction_frame_wrt_ref_frame_;
 
   // Joint state monitor (i.e., subscriber + utils)
   JointStateMonitor robot_joint_state_monitor_;
