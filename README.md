@@ -177,6 +177,24 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
 
 # Basic GUI
 
+## Perform calibration
+
+![Image not found!](ft_gui/doc/gui_images/gui_B.png "Screenshot of the gui once connected.")
+
+1) Edit namespace service if needed;
+2) Click on `ROS2 Connection` to initialize ROS2 communication (i.e., rclpy init, register services, etc.);
+3) Click on `Add calibration sample` to call the service  `~/ft_calibration_node/add_calibration_sample` each time the robot is in position.
+
+## Retrieve calibration parameters
+
+Once enough samples have been collected, go to the second tab of the GUI (see below) and click on `Get calibration` or `Save calibration` to call, respectively, the services:
+- `~/ft_calibration_node/get_calibration`
+- `~/ft_calibration_node/save_calibration`
+
+Also, the `Get calibration` button will retrieve the estimated calibration parameters and display them in the GUI.
+
+![Image not found!](ft_gui/doc/gui_images/gui_tab_2.png "Screenshot of the second tab of thegui.")
+
 
 # Examples
 
