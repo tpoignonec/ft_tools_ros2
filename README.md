@@ -4,8 +4,8 @@ Wrench estimation and calibration of F/T sensor for ROS2 applications.
 
 [![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml)
-[![Build tests (iron)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-iron.yml/badge.svg?branch=main)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-iron.yml?query=branch:main)
-[![Build tests (rolling)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-rolling.yml/badge.svg?branch=main)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-rolling.yml?query=branch:main)
+[![Build tests (iron)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-iron.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-iron.yml)
+[![Build tests (rolling)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-rolling.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci-rolling.yml)
 
 ***The current devs are based on the humble ROS 2 distribution (Ubuntu 22.04 LTS)***
 
