@@ -2,10 +2,16 @@
 Wrench estimation and calibration of F/T sensor for ROS2 applications.
 
 
-***The current devs are based on the humble ROS 2 distribution (Ubuntu 22.04 LTS)***
-
+[![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![CI](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml)
 
+***The current devs are based on the humble ROS 2 distribution (Ubuntu 22.04 LTS)***
+
+**Author:** Thibault Poignonec: [tpoignonec@unistra.fr](mailto:tpoignonec@unistra.fr)
+
+> **Warning**
+>
+> This package is currently under development!
 
 # Stack content
 
@@ -230,3 +236,10 @@ TODO
 # References
 
 - [1] D. Kubus, T. Kroger and F. M. Wahl, "On-line rigid object recognition and pose estimation based on inertial parameters," 2007 IEEE/RSJ International Conference on Intelligent Robots and Systems, 2007, pp. 1402-1408, doi: 10.1109/IROS.2007.4399184.
+
+# Contacts #
+![icube](https://icube.unistra.fr/fileadmin/templates/DUN/icube/images/logo.png)
+
+[ICube Laboratory](https://icube.unistra.fr), [University of Strasbourg](https://www.unistra.fr/), France
+
+__Thibault Poignonec:__ [tpoignonec@unistra.fr](mailto:tpoignonec@unistra.fr), @github: [tpoignonec](mailto:thibault.poignonec@gmail.com)
