@@ -47,9 +47,9 @@ bool FtEstimation::process_raw_wrench(
   sensor_orientation_wrt_ref_frame_ = sensor_orientation;
   // Compensate for gravity (+ remove offset)
   estimated_wrench_in_sensor_frame_ = remove_weight(raw_wrench_in_sensor_frame_);
+  apply_wrench_deadband(estimated_wrench_in_sensor_frame_);
   // Express at interaction point (i.e. end-effector)
   estimated_wrench_in_interaction_frame_ = estimate_interaction(estimated_wrench_in_sensor_frame_);
-  apply_wrench_deadband(estimated_wrench_in_interaction_frame_);
   return true;
 }
 
