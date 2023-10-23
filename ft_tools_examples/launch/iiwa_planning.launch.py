@@ -31,24 +31,6 @@ def generate_launch_description():
     )
     declared_arguments.append(
         DeclareLaunchArgument(
-            'prefix',
-            default_value='""',
-            description='Prefix of the joint names, useful for multi-robot setup. \
-                         If changed than also joint names in the controllers \
-                         configuration have to be updated. Expected format "<prefix>/"',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'namespace',
-            default_value='/',
-            description='Namespace of launched nodes, useful for multi-robot setup. \
-                         If changed than also the namespace in the controllers \
-                         configuration needs to be updated. Expected format "<ns>/".',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             'start_rviz',
             default_value='true',
             description='Start RViz2 automatically with this launch file.',
@@ -64,10 +46,9 @@ def generate_launch_description():
 
     # Initialize Arguments
     robot_description_content = LaunchConfiguration('robot_description_content')
-    prefix = LaunchConfiguration('prefix')
     use_sim = LaunchConfiguration('use_sim')
-    namespace = LaunchConfiguration('namespace')
     start_rviz = LaunchConfiguration('start_rviz')
+    namespace = '/'
 
     # Get URDF from param
     robot_description = {'robot_description': robot_description_content}
@@ -82,8 +63,6 @@ def generate_launch_description():
             ),
             " ",
             "name:=", "iiwa",
-            " ",
-            "prefix:=", prefix,
             " ",
             'description_package:=', 'iiwa_description',
         ]

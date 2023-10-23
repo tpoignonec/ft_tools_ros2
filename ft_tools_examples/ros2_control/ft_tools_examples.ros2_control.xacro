@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="ft_sensor">
+  <xacro:macro name="ft_sensor_r2c_hardware">
 
     <ros2_control name="ft" type="system">
       <hardware>

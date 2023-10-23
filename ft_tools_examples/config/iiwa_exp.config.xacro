@@ -23,6 +23,9 @@
     <!-- Import iiwa ros2_control description -->
     <xacro:include filename="$(find iiwa_description)/ros2_control/iiwa.r2c_hardware.xacro" />
 
+    <xacro:include filename="$(find ft_tools_examples)/ros2_control/ft_tools_examples.ros2_control.xacro" />
+
+
     <!-- Import all Gazebo-customization elements -->
     <xacro:include filename="$(find iiwa_description)/gazebo/iiwa.gazebo.xacro"/>
 
@@ -35,6 +38,7 @@
     <xacro:iiwa parent="world" prefix="$(arg prefix)">
         <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:iiwa>
+    
     <xacro:effector parent="tool0" prefix="$(arg prefix)" />
 
     <xacro:iiwa_r2c_hardware
@@ -44,6 +48,8 @@
         initial_positions_file="$(arg initial_positions_file)"
         use_sim="$(arg use_sim)" use_fake_hardware="$(arg use_fake_hardware)"
     />
+  
+  <xacro:ft_sensor_r2c_hardware/>
 
     <xacro:iiwa_gazebo
         runtime_config_package="$(arg runtime_config_package)"
