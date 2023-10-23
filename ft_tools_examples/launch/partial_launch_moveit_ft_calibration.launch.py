@@ -39,17 +39,9 @@ def generate_launch_description():
             description='Robot IP of FRI interface',
         )
     )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'robot_port',
-            default_value='30200',
-            description='Robot port of FRI interface.',
-        )
-    )
 
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     robot_ip = LaunchConfiguration('robot_ip')
-    robot_port = LaunchConfiguration('robot_port')
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -71,8 +63,6 @@ def generate_launch_description():
             'use_fake_hardware:=', use_fake_hardware,
             ' ',
             'robot_ip:=', robot_ip,
-            ' ',
-            'robot_port:=', robot_port,
         ]
     )
     robot_description = {'robot_description': robot_description_content}
