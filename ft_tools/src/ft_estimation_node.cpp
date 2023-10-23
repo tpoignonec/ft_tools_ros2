@@ -216,16 +216,17 @@ void FtEstimationNode::callback_new_raw_wrench(
   Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_interaction_frame =
     ft_estimation_process_.get_estimated_interaction_wrench();
   // Express in reference frame
-  Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_refrence_frame;
-  estimated_interaction_wrench_in_refrence_frame.head(3) = \
+  Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_reference_frame;
+  estimated_interaction_wrench_in_reference_frame.head(3) = \
     interaction_frame_wrt_ref_frame_.rotation() * \
     estimated_interaction_wrench_in_interaction_frame.head(3);
-  estimated_interaction_wrench_in_refrence_frame.tail(3) = \
+  estimated_interaction_wrench_in_reference_frame.tail(3) = \
     interaction_frame_wrt_ref_frame_.rotation() * \
     estimated_interaction_wrench_in_interaction_frame.tail(3);
+
   // Publish interaction wrench
   geometry_msgs::msg::WrenchStamped msg_interaction_wrench;
-  fill_wrench_msg(estimated_interaction_wrench_in_refrence_frame, msg_interaction_wrench);
+  fill_wrench_msg(estimated_interaction_wrench_in_reference_frame, msg_interaction_wrench);
   msg_interaction_wrench.header.frame_id = reference_frame_;
   msg_interaction_wrench.header.stamp = msg_raw_wrench.header.stamp;
   estimated_interaction_wrench_publisher_->publish(msg_interaction_wrench);
