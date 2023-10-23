@@ -27,21 +27,6 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            'description_package',
-            default_value='iiwa_description',
-            description='Description package with robot URDF/xacro files. Usually the argument \
-                         is not set, it enables use of a custom description.',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'description_file',
-            default_value='iiwa.config.xacro',
-            description='URDF/XACRO description file with the robot.',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             'use_fake_hardware',
             default_value='true',
             description='Start robot with fake hardware mirroring command to its states.',
@@ -61,8 +46,6 @@ def generate_launch_description():
             description='Robot port of FRI interface.',
         )
     )
-    description_package = LaunchConfiguration('description_package')
-    description_file = LaunchConfiguration('description_file')
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     robot_ip = LaunchConfiguration('robot_ip')
     robot_port = LaunchConfiguration('robot_port')
@@ -73,7 +56,11 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name='xacro')]),
             ' ',
             PathJoinSubstitution(
-                [FindPackageShare(description_package), 'config', description_file]
+                [FindPackageShare(
+                    'ft_tools_examples',
+                    'config',
+                    'iiwa_exp.config.xacro'
+                )]
             ),
             ' ',
             'prefix:=', '""'
@@ -85,8 +72,6 @@ def generate_launch_description():
             'robot_ip:=', robot_ip,
             ' ',
             'robot_port:=', robot_port,
-            ' ',
-            'description_package:=', description_package,
         ]
     )
     robot_description = {'robot_description': robot_description_content}
