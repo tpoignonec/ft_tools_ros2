@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-# from launch.conditions import IfCondition, UnlessCondition
-# from launch.event_handlers import OnProcessExit, OnProcessStart
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
+from launch.actions import RegisterEventHandler, IncludeLaunchDescription, DeclareLaunchArgument
+from launch.event_handlers import OnProcessExit
+from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -25,11 +24,93 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     # Declare arguments
     declared_arguments = []
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'use_fake_hardware',
+            default_value='false',
+            description='Start robot with fake hardware mirroring command to its states.',
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'robot_ip',
+            default_value='192.170.10.2',
+            description='Robot IP of FRI interface',
+        )
+    )
+
+    use_fake_hardware = LaunchConfiguration('use_fake_hardware')
+    robot_ip = LaunchConfiguration('robot_ip')
 
     # Get URDF via xacro
+    robot_description_content = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name='xacro')]),
+            ' ',
+            PathJoinSubstitution(
+                [
+                    FindPackageShare('ft_tools_examples'),
+                    'config',
+                    'iiwa_exp.config.xacro'
+                ]
+            ),
+            ' ',
+            'use_fake_hardware:=', use_fake_hardware,
+            ' ',
+            'robot_ip:=', robot_ip,
+        ]
+    )
+    robot_description = {'robot_description': robot_description_content}
 
-    # Launch iiwa robot with Moveit2 planning enabled
 
-    nodes = []
+    robot_state_pub_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='/',
+        output='both',
+        parameters=[robot_description]
+    )
+
+    # Launch controllers
+    robot_controllers = PathJoinSubstitution(
+        [
+            FindPackageShare("ft_tools_examples"),
+            "config",
+            "controllers.yaml",
+        ]
+    )
+
+    control_node = Node(
+        package="controller_manager",
+        executable="ros2_control_node",
+        parameters=[robot_description, robot_controllers],
+        output="both",
+    )
+
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster', '-c','/controller_manager'],
+    )
+
+    force_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["force_torque_sensor_broadcaster", "-c", "/controller_manager"],
+    )
+
+    arm_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=["iiwa_arm_controller", "-c", "/controller_manager"],
+    )
+
+    nodes = [
+        robot_state_pub_node,
+        control_node,
+        joint_state_broadcaster_spawner,
+        force_controller_spawner,
+        arm_controller_spawner
+    ]
 
     return LaunchDescription(declared_arguments + nodes)
