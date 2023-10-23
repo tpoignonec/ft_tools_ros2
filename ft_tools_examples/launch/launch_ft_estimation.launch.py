@@ -42,11 +42,11 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name='xacro')]),
             ' ',
             PathJoinSubstitution(
-                [FindPackageShare(
-                    'ft_tools_examples',
+                [
+                    FindPackageShare('ft_tools_examples'),
                     'config',
                     'iiwa_exp.config.xacro'
-                )]
+                ]
             ),
             ' ',
             'prefix:=', '""'
@@ -61,7 +61,7 @@ def generate_launch_description():
     # Launch calibration node
     ft_estimation_node_config = PathJoinSubstitution(
         [
-            FindPackageShare('ft_tools'),
+            FindPackageShare('ft_tools_examples'),
             'config',
             'config_ft_estimation.yaml',
         ]
