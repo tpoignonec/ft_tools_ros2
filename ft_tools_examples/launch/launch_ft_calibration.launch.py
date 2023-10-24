@@ -79,7 +79,7 @@ def generate_launch_description():
     # Launch calibration node
     ft_calibration_node_config = PathJoinSubstitution(
         [
-            FindPackageShare('ft_tools'),
+            FindPackageShare('ft_tools_examples'),
             'config',
             'config_ft_calibration.yaml',
         ]

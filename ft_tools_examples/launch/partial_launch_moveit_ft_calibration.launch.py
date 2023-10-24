@@ -68,6 +68,14 @@ def generate_launch_description():
     robot_description = {'robot_description': robot_description_content}
 
     # Running with Moveit2 planning
+    robot_state_pub_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='/',
+        output='both',
+        parameters=[robot_description]
+    )
+
     iiwa_planning_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             FindPackageShare('ft_tools_examples'),
@@ -85,7 +93,7 @@ def generate_launch_description():
         [
             FindPackageShare('ft_tools_examples'),
             'config',
-            'config_ft_calibration_iiwa.yaml',
+            'config_ft_calibration.yaml',
         ]
     )
     ft_calibration_node = Node(
@@ -103,6 +111,7 @@ def generate_launch_description():
     )
 
     nodes = [
+        robot_state_pub_node,
         iiwa_planning_launch,
         ft_calibration_node,
         ft_calibration_gui_node
