@@ -11,7 +11,7 @@ ft_estimation_node:
       sensor_frame:
         id: ft_sensor
       gravity_in_reference_frame: [0.0, 0.0, -9.81]
-      calibration_filename: calibration.yaml
+      calibration_filename: calibration_parameters.yaml
       calibration_package: ft_tools
 
     estimation:

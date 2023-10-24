@@ -10,7 +10,7 @@ ft_calibration_node:
       sensor_frame:
         id: ft_sensor
       gravity_in_reference_frame: [0.0, 0.0, -9.81]
-      calibration_filename: ft_calibration.yaml
+      calibration_filename: ft_calibration_parameters.yaml
       calibration_package: ft_tools_examples
 
     kinematics:
@@ -20,3 +20,13 @@ ft_calibration_node:
       tip: ft_sensor # tool0
       group_name: arm
       alpha: 0.0005
+
+    joint_state_monitor:
+      joints:
+      - joint_a1
+      - joint_a2
+      - joint_a3
+      - joint_a4
+      - joint_a5
+      - joint_a6
+      - joint_a7
