@@ -5,7 +5,7 @@
 
   <link name="${prefix}ft_sensor"/>
   <joint name="${prefix}joint_tool0-ft_sensor" type="fixed">
-      <origin rpy="0 0 0" xyz="0 0 0.025"/>
+      <origin rpy="0 0 0" xyz="0 0 0.026"/>
       <parent link="${prefix}${parent}"/>
       <child link="${prefix}ft_sensor"/>
       <axis xyz="0 0 0"/>
