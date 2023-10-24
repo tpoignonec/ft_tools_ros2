@@ -228,11 +228,11 @@ void FtEstimationNode::callback_new_raw_wrench(
   // Express in reference frame
   Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_reference_frame;
   estimated_interaction_wrench_in_reference_frame.head(3) =
-    sensor_frame_wrt_robot_base_.rotation() \
-    * estimated_interaction_wrench_in_interaction_frame.head(3);
+    sensor_frame_wrt_robot_base_.rotation() * \
+    estimated_interaction_wrench_in_interaction_frame.head(3);
   estimated_interaction_wrench_in_reference_frame.tail(3) = \
-    sensor_frame_wrt_robot_base_.rotation() \
-    * estimated_interaction_wrench_in_interaction_frame.tail(3);
+    sensor_frame_wrt_robot_base_.rotation() * \
+    estimated_interaction_wrench_in_interaction_frame.tail(3);
 
   // Publish interaction wrench
   geometry_msgs::msg::WrenchStamped msg_interaction_wrench;

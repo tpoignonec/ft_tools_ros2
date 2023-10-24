@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import RegisterEventHandler, IncludeLaunchDescription, DeclareLaunchArgument
-from launch.event_handlers import OnProcessExit
+from launch.actions import DeclareLaunchArgument  # IncludeLaunchDescription
+# from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
 
 from launch_ros.actions import Node
@@ -62,7 +62,6 @@ def generate_launch_description():
     )
     robot_description = {'robot_description': robot_description_content}
 
-
     robot_state_pub_node = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -90,7 +89,7 @@ def generate_launch_description():
     joint_state_broadcaster_spawner = Node(
         package='controller_manager',
         executable='spawner',
-        arguments=['joint_state_broadcaster', '-c','/controller_manager'],
+        arguments=['joint_state_broadcaster', '-c', '/controller_manager'],
     )
 
     force_controller_spawner = Node(
