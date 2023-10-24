@@ -16,11 +16,11 @@ ft_estimation_node:
 
     estimation:
       interaction_frame:
-        id: ft_sensor
+        id: interaction_point
       wrench_deadband:
-        - 0.05
-        - 0.05
-        - 0.05
+        - 0.0
+        - 0.0
+        - 0.0
         - 0.0
         - 0.0
         - 0.0
@@ -29,7 +29,7 @@ ft_estimation_node:
       plugin_name: kinematics_interface_kdl/KinematicsInterfaceKDL
       plugin_package: kinematics_interface
       base: iiwa_base
-      tip: ft_sensor
+      tip: interaction_point
       alpha: 0.0005
 
     joint_state_monitor:

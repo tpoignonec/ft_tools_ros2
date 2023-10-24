@@ -17,7 +17,7 @@ ft_calibration_node:
       plugin_name: kinematics_interface_kdl/KinematicsInterfaceKDL
       plugin_package: kinematics_interface
       base: iiwa_base
-      tip: ft_sensor # tool0
+      tip: interaction_point # tool0
       group_name: arm
       alpha: 0.0005
 

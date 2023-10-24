@@ -11,5 +11,13 @@
       <axis xyz="0 0 0"/>
   </joint>
 
+  <link name="${prefix}interaction_point"/>
+  <joint name="${prefix}ft_sensor-interaction_point" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0.1"/>
+      <parent link="${prefix}ft_sensor"/>
+      <child link="${prefix}interaction_point"/>
+      <axis xyz="0 0 0"/>
+  </joint>
+
   </xacro:macro>
 </robot>
