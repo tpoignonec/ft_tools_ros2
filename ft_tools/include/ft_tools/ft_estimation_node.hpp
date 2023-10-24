@@ -45,9 +45,11 @@ public:
 
   bool update_parameters(bool force_update = false);
 
-  void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
+  bool process_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
 
   bool update_robot_state();
+
+  void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
 
   // Service callbacks
   void set_calibration(
@@ -82,6 +84,11 @@ protected:
     estimated_interaction_wrench_publisher_{nullptr};
   rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr
     raw_wrench_subscriber_{nullptr};
+
+  // Data
+  geometry_msgs::msg::WrenchStamped last_msg_raw_wrench_;
+  bool is_first_wrench_ = true;
+  Eigen::Matrix<double, 6, 1> last_interaction_wrench_;
 
   // Frames of reference
 

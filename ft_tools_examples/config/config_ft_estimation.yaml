@@ -17,6 +17,7 @@ ft_estimation_node:
     estimation:
       interaction_frame:
         id: interaction_point
+      cutoff_frequency: 40.0
       wrench_deadband:
         - 0.0
         - 0.0

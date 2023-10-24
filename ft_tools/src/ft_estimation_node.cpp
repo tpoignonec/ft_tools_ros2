@@ -14,6 +14,7 @@
 //
 // Author: Thibault Poignonec (thibault.poignonec@gmail.com)
 
+# include <cmath>
 #include "ft_tools/ft_estimation_node.hpp"
 #include "ft_tools/msgs_conversion.hpp"
 
@@ -31,6 +32,7 @@ FtEstimationNode::FtEstimationNode()
 : LifecycleNode("ft_estimation_node")
 {
   bool all_ok = true;
+  is_first_wrench_ = true;
   parameter_handler_ = std::make_shared<ft_estimation_node::ParamListener>(
     this->get_node_parameters_interface()
   );
@@ -174,15 +176,28 @@ bool FtEstimationNode::update_robot_state()
   return success;
 }
 
-
 void FtEstimationNode::callback_new_raw_wrench(
+  const geometry_msgs::msg::WrenchStamped & msg_raw_wrench)
+{
+  if (is_first_wrench_) {
+    last_msg_raw_wrench_ = msg_raw_wrench;
+  }
+  bool success = process_new_raw_wrench(msg_raw_wrench);
+  if (is_first_wrench_ && success) {
+    is_first_wrench_ = false;
+  }
+  last_msg_raw_wrench_ = msg_raw_wrench;
+  return;
+}
+
+bool FtEstimationNode::process_new_raw_wrench(
   const geometry_msgs::msg::WrenchStamped & msg_raw_wrench)
 {
   if (!update_parameters()) {
     RCLCPP_ERROR(
       this->get_logger(),
       "Abort estimation, could not load the parameters!");
-    return;
+    return false;
   }
 
   // TODO(tpoignonec): check kinematics timeout!
@@ -194,7 +209,7 @@ void FtEstimationNode::callback_new_raw_wrench(
   if (!kinematics_ok) {
     auto clock = this->get_clock();
     RCLCPP_WARN_THROTTLE(this->get_logger(), *clock, 1000, "Failed to update robot kinematics!");
-    return;
+    return false;
   }
 
   // Extract raw wrench
@@ -205,6 +220,9 @@ void FtEstimationNode::callback_new_raw_wrench(
   raw_wrench[3] = msg_raw_wrench.wrench.torque.x;
   raw_wrench[4] = msg_raw_wrench.wrench.torque.y;
   raw_wrench[5] = msg_raw_wrench.wrench.torque.z;
+  rclcpp::Time current_msg_stamp = msg_raw_wrench.header.stamp;
+  rclcpp::Time last_msg_stamp = last_msg_raw_wrench_.header.stamp;
+  double period = current_msg_stamp.seconds() - last_msg_stamp.seconds();
 
   // Estimate sensor and interaction wrenches
   ft_estimation_process_.process_raw_wrench(
@@ -234,12 +252,24 @@ void FtEstimationNode::callback_new_raw_wrench(
     sensor_frame_wrt_robot_base_.rotation() * \
     estimated_interaction_wrench_in_interaction_frame.tail(3);
 
+  // Filter
+  if (!is_first_wrench_) {
+    double tau_filter = 1.0 / (2.0 * 3.1415 * parameters_.estimation.cutoff_frequency);
+    double coef = exp(-period / tau_filter);
+    estimated_interaction_wrench_in_reference_frame = \
+      last_interaction_wrench_ + \
+      (1 - coef) * ( estimated_interaction_wrench_in_reference_frame - last_interaction_wrench_);
+  }
+  last_interaction_wrench_ = estimated_interaction_wrench_in_reference_frame;
+
   // Publish interaction wrench
   geometry_msgs::msg::WrenchStamped msg_interaction_wrench;
   fill_wrench_msg(estimated_interaction_wrench_in_reference_frame, msg_interaction_wrench);
   msg_interaction_wrench.header.frame_id = reference_frame_;
   msg_interaction_wrench.header.stamp = msg_raw_wrench.header.stamp;
   estimated_interaction_wrench_publisher_->publish(msg_interaction_wrench);
+
+  return true;
 }
 
 bool FtEstimationNode::init_kinematics_monitoring()
