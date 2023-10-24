@@ -70,7 +70,7 @@ protected:
   bool register_services();
 
   bool init_kinematics_monitoring();
-
+  
   // Parameters management
   std::shared_ptr<ft_estimation_node::ParamListener> parameter_handler_;
   ft_estimation_node::Params parameters_;
@@ -84,20 +84,32 @@ protected:
     raw_wrench_subscriber_{nullptr};
 
   // Frames of reference
-  std::string reference_frame_, sensor_frame_, interaction_frame_;
 
-  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
-  Eigen::Isometry3d interaction_frame_wrt_robot_base_;
+  /// Name of the reference frame \f$\mathcal{F}_r\f$
+  std::string reference_frame_;
+  /// Name of the sensor frame \f$\mathcal{F}_s\f$
+  std::string sensor_frame_;
+  /// Name of the interaction frame \f$\mathcal{F}_i\f$
+  std::string interaction_frame_;
+
+  /// Homogeneous transformation \f${}^b T_r \f$
   Eigen::Isometry3d ref_frame_wrt_robot_base_;
+  /// Homogeneous transformation \f${}^b T_s \f$
+  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
+  /// Homogeneous transformation \f${}^b T_i \f$
+  Eigen::Isometry3d interaction_frame_wrt_robot_base_;
 
+  /// Homogeneous transformation \f${}^rT_s \f$
   Eigen::Isometry3d sensor_frame_wrt_ref_frame_;
-  Eigen::Isometry3d interaction_frame_wrt_sensor_frame_;
+  /// Homogeneous transformation \f${}^rT_i \f$
   Eigen::Isometry3d interaction_frame_wrt_ref_frame_;
+  /// Homogeneous transformation \f${}^sT_i \f$
+  Eigen::Isometry3d interaction_frame_wrt_sensor_frame_;
 
-  // Joint state monitor (i.e., subscriber + utils)
+  /// Joint state monitor (i.e., subscriber + utils)
   JointStateMonitor robot_joint_state_monitor_;
 
-  // Kinematics interface plugin loader
+  /// Kinematics interface plugin loader
   std::shared_ptr<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>>
   kinematics_loader_;
 
@@ -112,6 +124,7 @@ protected:
 
   // F/T estimation utils
   FtEstimation ft_estimation_process_;
+  /// Wrench deadband in [N,N,N,Nm,Nm,Nm]
   Eigen::Matrix<double, 6, 1> wrench_deadband_;
 };
 

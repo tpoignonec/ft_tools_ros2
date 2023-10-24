@@ -102,9 +102,13 @@ protected:
   Eigen::Vector3d gravity_in_reference_frame_;
   geometry_msgs::msg::WrenchStamped msg_raw_wrench_;
   Eigen::Matrix<double, 6, 1> raw_wrench_;
-  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
   Eigen::Matrix<double, 6, 1> sensor_twist_wrt_robot_base_;
+
+  /// Homogeneous transformation \f${}^b T_s \f$
+  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
+  /// Homogeneous transformation \f${}^b T_r \f$
   Eigen::Isometry3d ref_frame_wrt_robot_base_;
+  /// Homogeneous transformation \f${}^r T_s \f$
   Eigen::Isometry3d sensor_frame_wrt_ref_frame_;
 };
 
