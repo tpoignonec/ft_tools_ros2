@@ -14,7 +14,6 @@
 
 #ifndef FT_TOOLS__FT_ESTIMATION_HPP_
 #define FT_TOOLS__FT_ESTIMATION_HPP_
-
 #include "ft_tools/ft_parameters.hpp"
 // misc.
 #include <Eigen/Core>
@@ -36,14 +35,16 @@ public:
    *
    * @param ft_calib_parameters F/T sensor calibration parameters
    * @param deadband Wrench deadband in [N,N,N,Nm,Nm,Nm]
-   * @param interaction_frame_to_sensor_frame Homogeneous transformation \f${}^sT_i$\f
+   * @param interaction_frame_wrt_sensor_frame Homogeneous transformation \f${}^sT_i$\f
+   * @param gravity_in_robot_base_frame Signed, i.e., typically [0, 0, -9.81]
    * @return true All OK
    * @return false Failed to initialize
    */
   bool init(
     const FtParameters & ft_calib_parameters,
     const Eigen::Matrix<double, 6, 1> & deadband,
-    const Eigen::Isometry3d & interaction_frame_to_sensor_frame
+    const Eigen::Isometry3d & interaction_frame_wrt_sensor_frame,
+    const Eigen::Vector3d & gravity_in_robot_base_frame
   );
 
   /**
@@ -70,25 +71,27 @@ public:
    *
    * @param ft_calib_parameters F/T sensor calibration parameters
    * @param deadband Wrench deadband in [N,N,N,Nm,Nm,Nm]
-   * @param interaction_frame_to_sensor_frame Homogeneous transformation \f${}^sT_i$\f
+   * @param interaction_frame_wrt_sensor_frame Homogeneous transformation \f${}^sT_i$\f
+   * @param gravity_in_robot_base_frame Signed, i.e., typically [0, 0, -9.81]
    * @return true All OK
    * @return false Failed to set the parameters (probably due to invalid params)
    */
   bool set_parameters(
     const FtParameters & ft_calib_parameters,
     const Eigen::Matrix<double, 6, 1> & deadband,
-    const Eigen::Isometry3d & interaction_frame_to_sensor_frame
+    const Eigen::Isometry3d & interaction_frame_wrt_sensor_frame,
+    const Eigen::Vector3d & gravity_in_robot_base_frame
   );
 
   /**
    * @brief Set the interaction frame to sensor frame transformation \f${}^sT_i$\f
    *
-   * @param interaction_frame_to_sensor_frame Homogeneous transformation \f${}^sT_i$\f
+   * @param interaction_frame_wrt_sensor_frame Homogeneous transformation \f${}^sT_i$\f
    * @return true All OK
    * @return false Failed to set the parameter
    */
-  bool set_interaction_frame_to_sensor_frame(
-    const Eigen::Isometry3d & interaction_frame_to_sensor_frame
+  bool set_interaction_frame_wrt_sensor_frame(
+    const Eigen::Isometry3d & interaction_frame_wrt_sensor_frame
   );
 
   /// Returns the current calibration parameters
@@ -119,7 +122,7 @@ protected:
    * Transformation \f${}^{\text{sensor}}T_{\text{interaction}}\f$ from interaction frame
    * (i.e. end-effector) to sensor
    */
-  Eigen::Isometry3d interaction_frame_to_sensor_frame_;
+  Eigen::Isometry3d interaction_frame_wrt_sensor_frame_;
   Eigen::Matrix<double, 6, 1> deadband_ = Eigen::Matrix<double, 6, 1>::Zero();
 
 // Internal methods
