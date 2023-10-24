@@ -70,7 +70,7 @@ protected:
   bool register_services();
 
   bool init_kinematics_monitoring();
-  
+
   // Parameters management
   std::shared_ptr<ft_estimation_node::ParamListener> parameter_handler_;
   ft_estimation_node::Params parameters_;

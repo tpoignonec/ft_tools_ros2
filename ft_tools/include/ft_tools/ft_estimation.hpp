@@ -38,7 +38,7 @@ public:
    * @param deadband Wrench deadband in [N,N,N,Nm,Nm,Nm]
    * @param interaction_frame_to_sensor_frame Homogeneous transformation \f${}^sT_i$\f
    * @return true All OK
-   * @return false Failled to initialize
+   * @return false Failed to initialize
    */
   bool init(
     const FtParameters & ft_calib_parameters,
@@ -52,7 +52,7 @@ public:
    * @param sensor_orientation Rotation matrix \f${}^rR_s$\f of the sensor w.r.t. the ref. frame
    * @param measured_wrench Raw wrench measurement expressed \f$\mathcal{F}_s$\f
    * @return true All OK
-   * @return false Failled to process the wrench. As a result, estimated wrenches are invalid.
+   * @return false Failed to process the wrench. As a result, estimated wrenches are invalid.
    */
   bool process_raw_wrench(
     const Eigen::Matrix<double, 3, 3> & sensor_orientation,
@@ -72,7 +72,7 @@ public:
    * @param deadband Wrench deadband in [N,N,N,Nm,Nm,Nm]
    * @param interaction_frame_to_sensor_frame Homogeneous transformation \f${}^sT_i$\f
    * @return true All OK
-   * @return false Failled to set the parameters (probably due to invalid params)
+   * @return false Failed to set the parameters (probably due to invalid params)
    */
   bool set_parameters(
     const FtParameters & ft_calib_parameters,
@@ -85,7 +85,7 @@ public:
    *
    * @param interaction_frame_to_sensor_frame Homogeneous transformation \f${}^sT_i$\f
    * @return true All OK
-   * @return false Failled to set the parameter
+   * @return false Failed to set the parameter
    */
   bool set_interaction_frame_to_sensor_frame(
     const Eigen::Isometry3d & interaction_frame_to_sensor_frame

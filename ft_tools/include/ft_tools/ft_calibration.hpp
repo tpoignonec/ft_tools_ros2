@@ -43,7 +43,7 @@ public:
    * @param gravity Gravity (signed) expressed in sensor frame \f$\mathcal{F}_s$\f
    * @param measured_wrench Raw wrench measurement expressed \f$\mathcal{F}_s$\f
    * @return true All OK
-   * @return false Failled to add measurement
+   * @return false Failed to add measurement
    */
   bool add_measurement(
     const Eigen::Vector3d & gravity,
@@ -54,7 +54,7 @@ public:
    *
    * @param ft_calib_parameters Used to return the parameters by reference
    * @return true All OK
-   * @return false Failled to compute the calibration parameters
+   * @return false Failed to compute the calibration parameters
    */
   bool get_parameters(FtParameters & ft_calib_parameters);
 
