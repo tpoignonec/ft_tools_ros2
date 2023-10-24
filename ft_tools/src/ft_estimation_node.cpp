@@ -35,7 +35,7 @@ FtEstimationNode::FtEstimationNode()
     this->get_node_parameters_interface()
   );
   parameters_ = parameter_handler_->get_params();
-  all_ok &= update_parameters();
+  all_ok &= update_parameters(true);  // forced update
   all_ok &= init_kinematics_monitoring();
 
   // Retrieve reference, sensor, and interaction frames
@@ -59,9 +59,9 @@ FtEstimationNode::FtEstimationNode()
   all_ok &= ft_estimation_process_.init(
     ft_calib_parameters,
     wrench_deadband_,
-    interaction_frame_wrt_sensor_frame_
+    interaction_frame_wrt_sensor_frame_,
+    gravity_in_reference_frame_
   );
-
   // Register services
   all_ok &= register_services();
 
@@ -90,19 +90,28 @@ FtEstimationNode::FtEstimationNode()
   }
 }
 
-bool FtEstimationNode::update_parameters()
+bool FtEstimationNode::update_parameters(bool force_update)
 {
   bool all_ok = true;
-  if (parameter_handler_->is_old(parameters_)) {
+  if (force_update || parameter_handler_->is_old(parameters_)) {
     // Refresh parameters
     parameters_ = parameter_handler_->get_params();
     // Update deadband
     std::vector<double> param_deadband = parameters_.estimation.wrench_deadband;
-    if (!param_deadband.empty() && param_deadband.size() != 6) {
+    if (param_deadband.empty() || param_deadband.size() != 6) {
       RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'deadband'");
-      all_ok = false;
+      all_ok &= false;
     } else if (param_deadband.size() == 6) {
       wrench_deadband_ = Eigen::Map<Eigen::Matrix<double, 6, 1>>(param_deadband.data());
+    }
+    // Update gravity
+    std::vector<double> param_gravity = parameters_.calibration.gravity_in_reference_frame;
+    if (param_gravity.empty() || param_gravity.size() != 3) {
+      RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'gravity_in_reference_frame'");
+      all_ok &= false;
+    } else if (param_gravity.size() == 3) {
+      gravity_in_reference_frame_ = Eigen::Map<Eigen::Matrix<double, 3, 1>>(
+        parameters_.calibration.gravity_in_reference_frame.data());
     }
   }
   if (!all_ok) {
@@ -159,7 +168,7 @@ bool FtEstimationNode::update_robot_state()
     interaction_frame_wrt_ref_frame_ = \
       ref_frame_wrt_robot_base_.inverse() * interaction_frame_wrt_robot_base_;
     interaction_frame_wrt_sensor_frame_ = \
-      ref_frame_wrt_robot_base_.inverse() * interaction_frame_wrt_robot_base_;
+      sensor_frame_wrt_robot_base_.inverse() * interaction_frame_wrt_robot_base_;
   }
 
   return success;
@@ -178,7 +187,7 @@ void FtEstimationNode::callback_new_raw_wrench(
 
   // TODO(tpoignonec): check kinematics timeout!
   bool kinematics_ok = update_robot_state();    // temporary...
-  kinematics_ok &= ft_estimation_process_.set_interaction_frame_to_sensor_frame(
+  kinematics_ok &= ft_estimation_process_.set_interaction_frame_wrt_sensor_frame(
     interaction_frame_wrt_sensor_frame_
   );
 
@@ -206,6 +215,7 @@ void FtEstimationNode::callback_new_raw_wrench(
   // Retrieve and publish estimated wrenches
   Eigen::Matrix<double, 6, 1> estimated_wrench_in_sensor_frame =
     ft_estimation_process_.get_estimated_wrench();
+  // std::cerr << "gravity_in_reference_frame_: " << gravity_in_reference_frame_ << std::endl;
 
   geometry_msgs::msg::WrenchStamped msg_wrench;
   msg_wrench.header.frame_id = sensor_frame_;
@@ -217,12 +227,12 @@ void FtEstimationNode::callback_new_raw_wrench(
     ft_estimation_process_.get_estimated_interaction_wrench();
   // Express in reference frame
   Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_reference_frame;
-  estimated_interaction_wrench_in_reference_frame.head(3) = \
-    interaction_frame_wrt_ref_frame_.rotation() * \
-    estimated_interaction_wrench_in_interaction_frame.head(3);
+  estimated_interaction_wrench_in_reference_frame.head(3) =
+    sensor_frame_wrt_robot_base_.rotation() \
+    * estimated_interaction_wrench_in_interaction_frame.head(3);
   estimated_interaction_wrench_in_reference_frame.tail(3) = \
-    interaction_frame_wrt_ref_frame_.rotation() * \
-    estimated_interaction_wrench_in_interaction_frame.tail(3);
+    sensor_frame_wrt_robot_base_.rotation() \
+    * estimated_interaction_wrench_in_interaction_frame.tail(3);
 
   // Publish interaction wrench
   geometry_msgs::msg::WrenchStamped msg_interaction_wrench;
@@ -340,7 +350,8 @@ void FtEstimationNode::set_calibration(
     all_ok &= ft_estimation_process_.set_parameters(
       ft_calib_parameters,
       wrench_deadband_,
-      interaction_frame_wrt_sensor_frame_
+      interaction_frame_wrt_sensor_frame_,
+      gravity_in_reference_frame_
     );
   }
   // Return response
@@ -412,7 +423,8 @@ void FtEstimationNode::reload_calibration(
     all_ok &= ft_estimation_process_.set_parameters(
       ft_calib_parameters,
       wrench_deadband_,
-      interaction_frame_wrt_sensor_frame_
+      interaction_frame_wrt_sensor_frame_,
+      gravity_in_reference_frame_
     );
   }
   // Return response

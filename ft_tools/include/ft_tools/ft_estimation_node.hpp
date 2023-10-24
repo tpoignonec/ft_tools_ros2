@@ -43,7 +43,7 @@ class FtEstimationNode : public rclcpp_lifecycle::LifecycleNode
 public:
   FtEstimationNode();
 
-  bool update_parameters();
+  bool update_parameters(bool force_update = false);
 
   void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
 
@@ -126,6 +126,8 @@ protected:
   FtEstimation ft_estimation_process_;
   /// Wrench deadband in [N,N,N,Nm,Nm,Nm]
   Eigen::Matrix<double, 6, 1> wrench_deadband_;
+  /// Gravity setting
+  Eigen::Matrix<double, 3, 1> gravity_in_reference_frame_;
 };
 
 }  // namespace ft_tools
