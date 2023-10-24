@@ -89,7 +89,7 @@ bool FtCalibrationNode::update_robot_state()
   // Update sensor pose w.r.t. robot base
   if (success) {
     sensor_frame_wrt_ref_frame_ = \
-      sensor_frame_wrt_robot_base_ * ref_frame_wrt_robot_base_.inverse();
+      ref_frame_wrt_robot_base_.inverse() * sensor_frame_wrt_robot_base_;
   }
 
   return success;
