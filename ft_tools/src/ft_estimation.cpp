@@ -79,12 +79,16 @@ bool FtEstimation::set_parameters(
   ft_calib_parameters_.torque_offset = ft_calib_parameters.torque_offset;
   // Setup gravity
   gravity_in_robot_base_frame_ = gravity_in_robot_base_frame;
-  std::cerr << "gravity_in_robot_base_frame_ : " << gravity_in_robot_base_frame_ << std::endl;
   // Set deadband
   deadband_ = deadband;
-  std::cerr << "deadband_ : " << deadband_ << std::endl;
   // Set transformation between interaction and sensor frames
   interaction_frame_wrt_sensor_frame_ = interaction_frame_wrt_sensor_frame;
+  // Debug prints
+  std::cerr << "FtEstimation: mass = " << ft_calib_parameters_.mass << std::endl;
+  std::cerr << "FtEstimation: com = " << ft_calib_parameters_.com.transpose() << std::endl;
+  std::cerr << "FtEstimation: gravity_in_robot_base_frame = " <<
+    gravity_in_robot_base_frame_.transpose() << std::endl;
+  std::cerr << "FtEstimation: deadband = " << deadband_.transpose() << std::endl;
   return true;
 }
 

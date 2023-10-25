@@ -14,11 +14,10 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-# from launch.conditions import IfCondition, UnlessCondition
-# from launch.event_handlers import OnProcessExit, OnProcessStart
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import Command, FindExecutable, LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
+from launch.substitutions import Command, FindExecutable
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+# from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -65,17 +64,9 @@ def generate_launch_description():
             'robot_ip:=', robot_ip,
         ]
     )
-    robot_description = {'robot_description': robot_description_content}
+    # robot_description = {'robot_description': robot_description_content}
 
-    # Running with Moveit2 planning
-    robot_state_pub_node = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        namespace='/',
-        output='both',
-        parameters=[robot_description]
-    )
-
+    # Launch Moveit2 planning pipe
     iiwa_planning_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             FindPackageShare('ft_tools_examples'),
@@ -89,42 +80,39 @@ def generate_launch_description():
         }.items(),
     )
 
-    # Launch estimation node
-    ft_calibration_node_config = PathJoinSubstitution(
-        [
-            FindPackageShare('ft_tools_examples'),
-            'config',
-            'config_ft_calibration.yaml',
-        ]
-    )
-    ft_calibration_node = Node(
-        package='ft_tools',
-        executable='ft_calibration_node',
-        namespace='',
-        parameters=[robot_description, ft_calibration_node_config],
-        output='both',
-    )
-    # Launch estimation node
-    ft_estimation_node_config = PathJoinSubstitution(
-        [
-            FindPackageShare('ft_tools_examples'),
-            'config',
-            'config_ft_estimation.yaml',
-        ]
-    )
-    ft_estimation_node = Node(
-        package='ft_tools',
-        executable='ft_estimation_node',
-        namespace='',
-        parameters=[robot_description, ft_estimation_node_config],
-        output='both',
+    # Launch calibration node
+    calibration_node_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare('ft_tools'),
+            '/launch',
+            '/launch_ft_calibration.launch.py'
+        ]),
+        launch_arguments={
+            'robot_description_content': robot_description_content,
+            'calibration_node_config_package': 'ft_tools_examples',
+            'calibration_node_config_file': 'config_ft_calibration.yaml',
+        }.items(),
     )
 
+    # Launch estimation node
+    extimation_node_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare('ft_tools'),
+            '/launch',
+            '/launch_ft_estimation.launch.py'
+        ]),
+        launch_arguments={
+            'robot_description_content': robot_description_content,
+            'extimation_node_config_package': 'ft_tools_examples',
+            'extimation_node_config_file': 'config_ft_estimation.yaml',
+        }.items(),
+    )
+
+    # Return
     nodes = [
-        robot_state_pub_node,
         iiwa_planning_launch,
-        ft_calibration_node,
-        ft_estimation_node
+        calibration_node_launch,
+        extimation_node_launch
     ]
 
     return LaunchDescription(declared_arguments + nodes)

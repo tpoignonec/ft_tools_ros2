@@ -13,10 +13,7 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument  # ,IncludeLaunchDescription
-# from launch.conditions import IfCondition, UnlessCondition
-# from launch.event_handlers import OnProcessExit, OnProcessStart
-# from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -31,18 +28,38 @@ def generate_launch_description():
             description='Parsed URDF robot model',
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'extimation_node_config_package',
+            default_value='ft_tools',
+            description='Description package with the config file in "share/config".',
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            'extimation_node_config_file',
+            default_value='config_ft_estimation.yaml',
+            description='Estimation node config file.',
+        )
+    )
     # Retrieve URDF
     robot_description_content = LaunchConfiguration(
         'robot_description_content'
     )
+    extimation_node_config_package = LaunchConfiguration(
+        'extimation_node_config_package'
+    )
+    extimation_node_config_file = LaunchConfiguration(
+        'extimation_node_config_file'
+    )
     robot_description = {'robot_description': robot_description_content}
 
-    # Launch calibration node
+    # Launch estimation node
     ft_estimation_node_config = PathJoinSubstitution(
         [
-            FindPackageShare('ft_tools'),
+            FindPackageShare(extimation_node_config_package),
             'config',
-            'config_ft_estimation.yaml',
+            extimation_node_config_file,
         ]
     )
     ft_estimation_node = Node(
