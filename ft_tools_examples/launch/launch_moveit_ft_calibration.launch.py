@@ -27,23 +27,8 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            'description_package',
-            default_value='iiwa_description',
-            description='Description package with robot URDF/xacro files. Usually the argument \
-                         is not set, it enables use of a custom description.',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'description_file',
-            default_value='iiwa.config.xacro',
-            description='URDF/XACRO description file with the robot.',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
             'use_fake_hardware',
-            default_value='true',
+            default_value='false',
             description='Start robot with fake hardware mirroring command to its states.',
         )
     )
@@ -54,18 +39,9 @@ def generate_launch_description():
             description='Robot IP of FRI interface',
         )
     )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'robot_port',
-            default_value='30200',
-            description='Robot port of FRI interface.',
-        )
-    )
-    description_package = LaunchConfiguration('description_package')
-    description_file = LaunchConfiguration('description_file')
+
     use_fake_hardware = LaunchConfiguration('use_fake_hardware')
     robot_ip = LaunchConfiguration('robot_ip')
-    robot_port = LaunchConfiguration('robot_port')
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -73,7 +49,11 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name='xacro')]),
             ' ',
             PathJoinSubstitution(
-                [FindPackageShare(description_package), 'config', description_file]
+                [
+                    FindPackageShare('ft_tools_examples'),
+                    'config',
+                    'iiwa_exp.config.xacro'
+                ]
             ),
             ' ',
             'prefix:=', '""'
@@ -83,34 +63,36 @@ def generate_launch_description():
             'use_fake_hardware:=', use_fake_hardware,
             ' ',
             'robot_ip:=', robot_ip,
-            ' ',
-            'robot_port:=', robot_port,
-            ' ',
-            'description_package:=', description_package,
         ]
     )
     robot_description = {'robot_description': robot_description_content}
 
-    # Launch iiwa robot with Moveit2 planning enabled
-    iiwa_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare('iiwa_bringup'),
-            '/launch',
-            '/iiwa.launch.py'
-        ]),
-        launch_arguments={
-            'description_package': description_package,
-            'description_file': description_file,
-            'use_fake_hardware': use_fake_hardware,
-            'robot_ip': robot_ip,
-            'robot_port': robot_port,
-            'use_planning': 'true',
-        }.items()
+    # Running with Moveit2 planning
+    robot_state_pub_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='/',
+        output='both',
+        parameters=[robot_description]
     )
 
+    iiwa_planning_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([
+            FindPackageShare('ft_tools_examples'),
+            '/launch',
+            '/iiwa_planning.launch.py'
+        ]),
+        launch_arguments={
+            'robot_description_content': robot_description_content,
+            'start_rviz': 'true',
+            'use_sim': 'false',
+        }.items(),
+    )
+
+    # Launch estimation node
     ft_calibration_node_config = PathJoinSubstitution(
         [
-            FindPackageShare('ft_tools'),
+            FindPackageShare('ft_tools_examples'),
             'config',
             'config_ft_calibration.yaml',
         ]
@@ -122,17 +104,27 @@ def generate_launch_description():
         parameters=[robot_description, ft_calibration_node_config],
         output='both',
     )
-    ft_calibration_gui_node = Node(
-        package='ft_gui',
-        executable='ft_calibration_gui',
+    # Launch estimation node
+    ft_estimation_node_config = PathJoinSubstitution(
+        [
+            FindPackageShare('ft_tools_examples'),
+            'config',
+            'config_ft_estimation.yaml',
+        ]
+    )
+    ft_estimation_node = Node(
+        package='ft_tools',
+        executable='ft_estimation_node',
         namespace='',
+        parameters=[robot_description, ft_estimation_node_config],
         output='both',
     )
 
     nodes = [
-        iiwa_launch,
+        robot_state_pub_node,
+        iiwa_planning_launch,
         ft_calibration_node,
-        ft_calibration_gui_node
+        ft_estimation_node
     ]
 
     return LaunchDescription(declared_arguments + nodes)
