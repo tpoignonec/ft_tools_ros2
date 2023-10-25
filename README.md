@@ -67,7 +67,7 @@ We want to retrieve the F/T sensor calibration that consists in
 - the force offset $f_0 \in \mathbb{R}^3$ in N
 - the torque offset $\tau_0 \in \mathbb{R}^3$ in N.m
 
-If enough measurements were provided (i.e., about 6-10 well-chosen robot poses), the different parameters are identified sing a least square regression (i.e., eigen SVD solver) such that
+If enough measurements were provided (i.e., about 10 well-chosen robot poses), the different parameters are identified using a least square regression (i.e., eigen SVD solver) such that
 
 $$ f_\text{meas} = -mg + f_0 \text{ and } \tau_\text{meas} = -mc \times g + \tau_0$$
 
@@ -88,6 +88,8 @@ The [ft_tools::FtEstimation](ft_tools/include/ft_tools/ft_estimation.hpp) implem
   -  ${}^{ee}\tau_\text{est} = {}^{ee}R_s \left( {}^{s}\tau_\text{est} - {}^s p_{ee} \times {}^{s}f_\text{est} \right) $
 
 - Apply wrench deadband on ${}^{ee}f_\text{est}$ and ${}^{ee}\tau_\text{est}$ (optional)
+
+- Apply low-pass filtering (200Hz cutoff by default)
 
 
 # Convenience nodes
@@ -233,9 +235,26 @@ colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install
 ```
 
 2) Launch
+
+Launch robot controllers in a first terminal:
 ```shell
 source install/local_setup.bash
-ros2 launch ft_tools_example launch_moveit_ft_calibration.launch
+ros2 launch ft_tools_example launch_robot_controllers.launch.py
+```
+
+Launch moveit2 planning + calibration/estimation nodes:
+```shell
+source install/local_setup.bash
+ros2 launch ft_tools_example launch_moveit_ft_calibration.launch.py
+```
+
+N.B., if the calibration files is updated, the service `ft_estimation_node/reload_calibration` must be called to refresh.
+
+(optional) Run calibration GUI
+
+```shell
+source install/local_setup.bash
+ros2 run ft_gui ft_calibration_gui
 ```
 
 3) Move robot with moveit rviz2 plugin and use GUI to perform calibration
