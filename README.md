@@ -226,8 +226,8 @@ TODO
 ```shell
 source /opt/ros/humble/setup.bash
 cd <ws>/src
-rosdep install --ignore-src --from-paths . -y -r
 vcs import . < ft_tools_ros2/ft_tools_examples/ft_tools_examples.repos
+rosdep install --ignore-src --from-paths . -y -r
 cd ..
 colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --symlink-install
 ```
