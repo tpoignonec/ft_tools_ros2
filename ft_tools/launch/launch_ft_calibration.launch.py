@@ -27,59 +27,20 @@ def generate_launch_description():
     declared_arguments = []
     declared_arguments.append(
         DeclareLaunchArgument(
-            'use_fake_hardware',
-            default_value='true',
-            description='Start robot with fake hardware mirroring command to its states.',
+            'robot_description_content',
+            description='Parsed URDF robot model',
         )
     )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'robot_ip',
-            default_value='192.170.10.2',
-            description='Robot IP of FRI interface',
-        )
-    )
-    declared_arguments.append(
-        DeclareLaunchArgument(
-            'robot_port',
-            default_value='30200',
-            description='Robot port of FRI interface.',
-        )
-    )
-    use_fake_hardware = LaunchConfiguration('use_fake_hardware')
-    robot_ip = LaunchConfiguration('robot_ip')
-    robot_port = LaunchConfiguration('robot_port')
-
-    # Get URDF via xacro
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name='xacro')]),
-            ' ',
-            PathJoinSubstitution(
-                [FindPackageShare(
-                    'ft_tools_examples',
-                    'config',
-                    'iiwa_exp.config.xacro'
-                )]
-            ),
-            ' ',
-            'prefix:=', '""'
-            ' ',
-            'use_sim:=', 'false',
-            ' ',
-            'use_fake_hardware:=', use_fake_hardware,
-            ' ',
-            'robot_ip:=', robot_ip,
-            ' ',
-            'robot_port:=', robot_port,
-        ]
+    # Retrieve URDF
+    robot_description_content = LaunchConfiguration(
+        'robot_description_content'
     )
     robot_description = {'robot_description': robot_description_content}
 
     # Launch calibration node
     ft_calibration_node_config = PathJoinSubstitution(
         [
-            FindPackageShare('ft_tools_examples'),
+            FindPackageShare('ft_tools'),
             'config',
             'config_ft_calibration.yaml',
         ]

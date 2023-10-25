@@ -25,43 +25,22 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     # Declare arguments
     declared_arguments = []
-
     declared_arguments.append(
         DeclareLaunchArgument(
-            'use_fake_hardware',
-            default_value='false',
-            description='Start robot with fake hardware mirroring command to its states.',
+            'robot_description_content',
+            description='Parsed URDF robot model',
         )
     )
-
-    use_fake_hardware = LaunchConfiguration('use_fake_hardware')
-
-    # Get URDF via xacro
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name='xacro')]),
-            ' ',
-            PathJoinSubstitution(
-                [
-                    FindPackageShare('ft_tools_examples'),
-                    'config',
-                    'iiwa_exp.config.xacro'
-                ]
-            ),
-            ' ',
-            'prefix:=', '""'
-            ' ',
-            'use_sim:=', 'false',
-            ' ',
-            'use_fake_hardware:=', use_fake_hardware,
-        ]
+    # Retrieve URDF
+    robot_description_content = LaunchConfiguration(
+        'robot_description_content'
     )
     robot_description = {'robot_description': robot_description_content}
 
     # Launch calibration node
     ft_estimation_node_config = PathJoinSubstitution(
         [
-            FindPackageShare('ft_tools_examples'),
+            FindPackageShare('ft_tools'),
             'config',
             'config_ft_estimation.yaml',
         ]
