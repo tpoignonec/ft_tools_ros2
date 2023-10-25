@@ -37,12 +37,32 @@ public:
   */
   bool reset();
 
+  /**
+   * @brief Add new calibration data point.
+   *
+   * @param gravity Gravity (signed) expressed in sensor frame \f$\mathcal{F}_s$\f
+   * @param measured_wrench Raw wrench measurement expressed \f$\mathcal{F}_s$\f
+   * @return true All OK
+   * @return false Failed to add measurement
+   */
   bool add_measurement(
     const Eigen::Vector3d & gravity,
     const Eigen::Matrix<double, 6, 1> & measured_wrench);
 
+  /**
+   * @brief Compute and returns the calibration parameters
+   *
+   * @param ft_calib_parameters Used to return the parameters by reference
+   * @return true All OK
+   * @return false Failed to compute the calibration parameters
+   */
   bool get_parameters(FtParameters & ft_calib_parameters);
 
+  /**
+   * @brief Get the total number of (valid) calibration data points
+   *
+   * @return unsigned int N Number of data points
+   */
   unsigned int get_number_measurements() {return N;}
 
 protected:
@@ -56,7 +76,10 @@ protected:
    */
   bool solve(Eigen::VectorXd & phi);
 
+  /// Calibration data points counter
   unsigned int N = 0;
+
+private:
   Eigen::MatrixXd H;       // (stacked) observation matrices
   Eigen::VectorXd Z;       // (stacked) F/T measurements
 };

@@ -63,6 +63,12 @@ ft_estimation_node:
         description: "Frame of the interaction with the environment.",
         read_only: true
       }
+    cutoff_frequency: {
+      type: double,
+      default_value: 200.0,
+      description: "Cutoff frequency of the wrench low-pass filter in Hz.",
+      read_only: true
+    }
     wrench_deadband: {
       type: double_array,
       default_value: [0., 0., 0., 0., 0., 0.],

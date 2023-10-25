@@ -14,6 +14,7 @@
 //
 // Author: Thibault Poignonec (thibault.poignonec@gmail.com)
 
+# include <cmath>
 #include "ft_tools/ft_estimation_node.hpp"
 #include "ft_tools/msgs_conversion.hpp"
 
@@ -31,11 +32,12 @@ FtEstimationNode::FtEstimationNode()
 : LifecycleNode("ft_estimation_node")
 {
   bool all_ok = true;
+  is_first_wrench_ = true;
   parameter_handler_ = std::make_shared<ft_estimation_node::ParamListener>(
     this->get_node_parameters_interface()
   );
   parameters_ = parameter_handler_->get_params();
-  all_ok &= update_parameters();
+  all_ok &= update_parameters(true);  // forced update
   all_ok &= init_kinematics_monitoring();
 
   // Retrieve reference, sensor, and interaction frames
@@ -59,9 +61,9 @@ FtEstimationNode::FtEstimationNode()
   all_ok &= ft_estimation_process_.init(
     ft_calib_parameters,
     wrench_deadband_,
-    interaction_frame_wrt_sensor_frame_
+    interaction_frame_wrt_sensor_frame_,
+    gravity_in_reference_frame_
   );
-
   // Register services
   all_ok &= register_services();
 
@@ -90,19 +92,28 @@ FtEstimationNode::FtEstimationNode()
   }
 }
 
-bool FtEstimationNode::update_parameters()
+bool FtEstimationNode::update_parameters(bool force_update)
 {
   bool all_ok = true;
-  if (parameter_handler_->is_old(parameters_)) {
+  if (force_update || parameter_handler_->is_old(parameters_)) {
     // Refresh parameters
     parameters_ = parameter_handler_->get_params();
     // Update deadband
     std::vector<double> param_deadband = parameters_.estimation.wrench_deadband;
-    if (!param_deadband.empty() && param_deadband.size() != 6) {
+    if (param_deadband.empty() || param_deadband.size() != 6) {
       RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'deadband'");
-      all_ok = false;
+      all_ok &= false;
     } else if (param_deadband.size() == 6) {
       wrench_deadband_ = Eigen::Map<Eigen::Matrix<double, 6, 1>>(param_deadband.data());
+    }
+    // Update gravity
+    std::vector<double> param_gravity = parameters_.calibration.gravity_in_reference_frame;
+    if (param_gravity.empty() || param_gravity.size() != 3) {
+      RCLCPP_ERROR(this->get_logger(), "Invalid parameters 'gravity_in_reference_frame'");
+      all_ok &= false;
+    } else if (param_gravity.size() == 3) {
+      gravity_in_reference_frame_ = Eigen::Map<Eigen::Matrix<double, 3, 1>>(
+        parameters_.calibration.gravity_in_reference_frame.data());
     }
   }
   if (!all_ok) {
@@ -155,37 +166,50 @@ bool FtEstimationNode::update_robot_state()
   // Update sensor pose w.r.t. robot base
   if (success) {
     sensor_frame_wrt_ref_frame_ = \
-      sensor_frame_wrt_robot_base_ * ref_frame_wrt_robot_base_.inverse();
+      ref_frame_wrt_robot_base_.inverse() * sensor_frame_wrt_robot_base_;
     interaction_frame_wrt_ref_frame_ = \
-      interaction_frame_wrt_robot_base_ * ref_frame_wrt_robot_base_.inverse();
+      ref_frame_wrt_robot_base_.inverse() * interaction_frame_wrt_robot_base_;
     interaction_frame_wrt_sensor_frame_ = \
-      interaction_frame_wrt_robot_base_ * sensor_frame_wrt_robot_base_.inverse();
+      sensor_frame_wrt_robot_base_.inverse() * interaction_frame_wrt_robot_base_;
   }
 
   return success;
 }
 
-
 void FtEstimationNode::callback_new_raw_wrench(
+  const geometry_msgs::msg::WrenchStamped & msg_raw_wrench)
+{
+  if (is_first_wrench_) {
+    last_msg_raw_wrench_ = msg_raw_wrench;
+  }
+  bool success = process_new_raw_wrench(msg_raw_wrench);
+  if (is_first_wrench_ && success) {
+    is_first_wrench_ = false;
+  }
+  last_msg_raw_wrench_ = msg_raw_wrench;
+  return;
+}
+
+bool FtEstimationNode::process_new_raw_wrench(
   const geometry_msgs::msg::WrenchStamped & msg_raw_wrench)
 {
   if (!update_parameters()) {
     RCLCPP_ERROR(
       this->get_logger(),
       "Abort estimation, could not load the parameters!");
-    return;
+    return false;
   }
 
   // TODO(tpoignonec): check kinematics timeout!
   bool kinematics_ok = update_robot_state();    // temporary...
-  kinematics_ok &= ft_estimation_process_.set_interaction_frame_to_sensor_frame(
+  kinematics_ok &= ft_estimation_process_.set_interaction_frame_wrt_sensor_frame(
     interaction_frame_wrt_sensor_frame_
   );
 
   if (!kinematics_ok) {
     auto clock = this->get_clock();
     RCLCPP_WARN_THROTTLE(this->get_logger(), *clock, 1000, "Failed to update robot kinematics!");
-    return;
+    return false;
   }
 
   // Extract raw wrench
@@ -196,6 +220,9 @@ void FtEstimationNode::callback_new_raw_wrench(
   raw_wrench[3] = msg_raw_wrench.wrench.torque.x;
   raw_wrench[4] = msg_raw_wrench.wrench.torque.y;
   raw_wrench[5] = msg_raw_wrench.wrench.torque.z;
+  rclcpp::Time current_msg_stamp = msg_raw_wrench.header.stamp;
+  rclcpp::Time last_msg_stamp = last_msg_raw_wrench_.header.stamp;
+  double period = current_msg_stamp.seconds() - last_msg_stamp.seconds();
 
   // Estimate sensor and interaction wrenches
   ft_estimation_process_.process_raw_wrench(
@@ -206,6 +233,7 @@ void FtEstimationNode::callback_new_raw_wrench(
   // Retrieve and publish estimated wrenches
   Eigen::Matrix<double, 6, 1> estimated_wrench_in_sensor_frame =
     ft_estimation_process_.get_estimated_wrench();
+  // std::cerr << "gravity_in_reference_frame_: " << gravity_in_reference_frame_ << std::endl;
 
   geometry_msgs::msg::WrenchStamped msg_wrench;
   msg_wrench.header.frame_id = sensor_frame_;
@@ -216,19 +244,32 @@ void FtEstimationNode::callback_new_raw_wrench(
   Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_interaction_frame =
     ft_estimation_process_.get_estimated_interaction_wrench();
   // Express in reference frame
-  Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_refrence_frame;
-  estimated_interaction_wrench_in_refrence_frame.head(3) = \
-    interaction_frame_wrt_ref_frame_.rotation() * \
+  Eigen::Matrix<double, 6, 1> estimated_interaction_wrench_in_reference_frame;
+  estimated_interaction_wrench_in_reference_frame.head(3) =
+    sensor_frame_wrt_robot_base_.rotation() * \
     estimated_interaction_wrench_in_interaction_frame.head(3);
-  estimated_interaction_wrench_in_refrence_frame.tail(3) = \
-    interaction_frame_wrt_ref_frame_.rotation() * \
+  estimated_interaction_wrench_in_reference_frame.tail(3) = \
+    sensor_frame_wrt_robot_base_.rotation() * \
     estimated_interaction_wrench_in_interaction_frame.tail(3);
+
+  // Filter
+  if (!is_first_wrench_) {
+    double tau_filter = 1.0 / (2.0 * 3.1415 * parameters_.estimation.cutoff_frequency);
+    double coef = exp(-period / tau_filter);
+    estimated_interaction_wrench_in_reference_frame = \
+      last_interaction_wrench_ + \
+      (1 - coef) * ( estimated_interaction_wrench_in_reference_frame - last_interaction_wrench_);
+  }
+  last_interaction_wrench_ = estimated_interaction_wrench_in_reference_frame;
+
   // Publish interaction wrench
   geometry_msgs::msg::WrenchStamped msg_interaction_wrench;
-  fill_wrench_msg(estimated_interaction_wrench_in_refrence_frame, msg_interaction_wrench);
+  fill_wrench_msg(estimated_interaction_wrench_in_reference_frame, msg_interaction_wrench);
   msg_interaction_wrench.header.frame_id = reference_frame_;
   msg_interaction_wrench.header.stamp = msg_raw_wrench.header.stamp;
   estimated_interaction_wrench_publisher_->publish(msg_interaction_wrench);
+
+  return true;
 }
 
 bool FtEstimationNode::init_kinematics_monitoring()
@@ -339,7 +380,8 @@ void FtEstimationNode::set_calibration(
     all_ok &= ft_estimation_process_.set_parameters(
       ft_calib_parameters,
       wrench_deadband_,
-      interaction_frame_wrt_sensor_frame_
+      interaction_frame_wrt_sensor_frame_,
+      gravity_in_reference_frame_
     );
   }
   // Return response
@@ -411,7 +453,8 @@ void FtEstimationNode::reload_calibration(
     all_ok &= ft_estimation_process_.set_parameters(
       ft_calib_parameters,
       wrench_deadband_,
-      interaction_frame_wrt_sensor_frame_
+      interaction_frame_wrt_sensor_frame_,
+      gravity_in_reference_frame_
     );
   }
   // Return response

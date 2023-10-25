@@ -15,7 +15,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY launch config
+  DIRECTORY config launch ros2_control
   DESTINATION share/${PROJECT_NAME}
 )
 

@@ -1,22 +1,22 @@
 ft_estimation_node:
   ros__parameters:
-    topic_raw_wrench: raw_wrench
+    topic_raw_wrench: /force_torque_sensor_broadcaster/wrench
     topic_joint_state: joint_states
     topic_estimated_wrench: ft_sensor_wrench
     topic_interaction_wrench: ft_interaction_wrench
 
     calibration:
       reference_frame:
-        id: base_link
+        id: iiwa_base
       sensor_frame:
         id: ft_sensor
       gravity_in_reference_frame: [0.0, 0.0, -9.81]
-      calibration_filename: calibration_parameters.yaml
-      calibration_package: ft_tools
+      calibration_filename: ft_calibration_parameters.yaml
+      calibration_package: ft_tools_examples
 
     estimation:
       interaction_frame:
-        id: tool0
+        id: interaction_point
       cutoff_frequency: 40.0
       wrench_deadband:
         - 0.0
@@ -29,6 +29,16 @@ ft_estimation_node:
     kinematics:
       plugin_name: kinematics_interface_kdl/KinematicsInterfaceKDL
       plugin_package: kinematics_interface
-      base: base_link
-      tip: tool0
+      base: iiwa_base
+      tip: interaction_point
       alpha: 0.0005
+
+    joint_state_monitor:
+      joints:
+      - joint_a1
+      - joint_a2
+      - joint_a3
+      - joint_a4
+      - joint_a5
+      - joint_a6
+      - joint_a7

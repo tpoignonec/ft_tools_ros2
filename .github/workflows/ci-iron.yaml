@@ -16,6 +16,6 @@ jobs:
         with:
           use-ros2-testing: true
       - uses: ros-tooling/action-ros-ci@v0.3
-        continue-on-error: true
+        # continue-on-error: true
         with:
           target-ros2-distro: iron

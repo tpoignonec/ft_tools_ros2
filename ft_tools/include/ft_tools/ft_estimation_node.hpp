@@ -43,11 +43,13 @@ class FtEstimationNode : public rclcpp_lifecycle::LifecycleNode
 public:
   FtEstimationNode();
 
-  bool update_parameters();
+  bool update_parameters(bool force_update = false);
 
-  void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
+  bool process_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
 
   bool update_robot_state();
+
+  void callback_new_raw_wrench(const geometry_msgs::msg::WrenchStamped & msg_raw_wrench);
 
   // Service callbacks
   void set_calibration(
@@ -83,21 +85,38 @@ protected:
   rclcpp::Subscription<geometry_msgs::msg::WrenchStamped>::SharedPtr
     raw_wrench_subscriber_{nullptr};
 
+  // Data
+  geometry_msgs::msg::WrenchStamped last_msg_raw_wrench_;
+  bool is_first_wrench_ = true;
+  Eigen::Matrix<double, 6, 1> last_interaction_wrench_;
+
   // Frames of reference
-  std::string reference_frame_, sensor_frame_, interaction_frame_;
 
-  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
-  Eigen::Isometry3d interaction_frame_wrt_robot_base_;
+  /// Name of the reference frame \f$\mathcal{F}_r\f$
+  std::string reference_frame_;
+  /// Name of the sensor frame \f$\mathcal{F}_s\f$
+  std::string sensor_frame_;
+  /// Name of the interaction frame \f$\mathcal{F}_i\f$
+  std::string interaction_frame_;
+
+  /// Homogeneous transformation \f${}^b T_r \f$
   Eigen::Isometry3d ref_frame_wrt_robot_base_;
+  /// Homogeneous transformation \f${}^b T_s \f$
+  Eigen::Isometry3d sensor_frame_wrt_robot_base_;
+  /// Homogeneous transformation \f${}^b T_i \f$
+  Eigen::Isometry3d interaction_frame_wrt_robot_base_;
 
+  /// Homogeneous transformation \f${}^rT_s \f$
   Eigen::Isometry3d sensor_frame_wrt_ref_frame_;
-  Eigen::Isometry3d interaction_frame_wrt_sensor_frame_;
+  /// Homogeneous transformation \f${}^rT_i \f$
   Eigen::Isometry3d interaction_frame_wrt_ref_frame_;
+  /// Homogeneous transformation \f${}^sT_i \f$
+  Eigen::Isometry3d interaction_frame_wrt_sensor_frame_;
 
-  // Joint state monitor (i.e., subscriber + utils)
+  /// Joint state monitor (i.e., subscriber + utils)
   JointStateMonitor robot_joint_state_monitor_;
 
-  // Kinematics interface plugin loader
+  /// Kinematics interface plugin loader
   std::shared_ptr<pluginlib::ClassLoader<kinematics_interface::KinematicsInterface>>
   kinematics_loader_;
 
@@ -112,7 +131,10 @@ protected:
 
   // F/T estimation utils
   FtEstimation ft_estimation_process_;
+  /// Wrench deadband in [N,N,N,Nm,Nm,Nm]
   Eigen::Matrix<double, 6, 1> wrench_deadband_;
+  /// Gravity setting
+  Eigen::Matrix<double, 3, 1> gravity_in_reference_frame_;
 };
 
 }  // namespace ft_tools

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="ft_sensor_r2c_hardware">
+
+    <ros2_control name="ft" type="system">
+      <hardware>
+        <plugin>ethercat_driver/EthercatDriver</plugin>
+        <param name="master_id">0</param>
+        <param name="control_frequency">100</param>
+      </hardware>
+
+      <sensor name="ftsensor">
+        <state_interface name="force.x"/>
+        <state_interface name="force.y"/>
+        <state_interface name="force.z"/>
+        <state_interface name="torque.x"/>
+        <state_interface name="torque.y"/>
+        <state_interface name="torque.z"/>
+        <ec_module name="Mini40">
+          <plugin>ethercat_plugins/ATI_FTSensor</plugin>
+          <param name="alias">0</param>
+          <param name="position">0</param>
+          <param name="force.x.state_interface">force.x</param>
+          <param name="force.y.state_interface">force.y</param>
+          <param name="force.z.state_interface">force.z</param>
+          <param name="torque.x.state_interface">torque.x</param>
+          <param name="torque.y.state_interface">torque.y</param>
+          <param name="torque.z.state_interface">torque.z</param>
+          <param name="force.x.offset">0.0</param>
+          <param name="force.y.offset">0.0</param>
+          <param name="force.z.offset">0.0</param>
+          <param name="torque.x.offset">0.0</param>
+          <param name="torque.y.offset">0.0</param>
+          <param name="torque.z.offset">0.0</param>
+        </ec_module>
+      </sensor>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

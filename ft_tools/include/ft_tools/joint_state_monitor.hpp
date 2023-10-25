@@ -18,6 +18,7 @@
 // Misc.
 #include <memory>
 #include <vector>
+#include <map>
 #include <string>
 
 #include <rclcpp/rclcpp.hpp>
@@ -54,10 +55,12 @@ public:
   bool get_joint_names(std::vector<std::string> & names) const;
   bool get_joint_positions(std::vector<double> & jnt_pos) const;
   bool get_joint_velocities(std::vector<double> & jnt_vel) const;
+  bool get_joint_torques(std::vector<double> & jnt_torques) const;
 
   const std::vector<std::string> & get_joint_names() const;
   const std::vector<double> & get_joint_positions() const;
   const std::vector<double> & get_joint_velocities() const;
+  const std::vector<double> & get_joint_torques() const;
 
   /**
    * @brief Perform a security check to ascertain that stored data is recent
@@ -66,6 +69,15 @@ public:
    * @return True if everything is ok (initialized + no timeout)
    */
   bool check_timeout(double timeout = 0.01 /* seconds */);
+
+
+  template<class T>
+  std::vector<T> get_reordered_vector(
+    const std::vector<T> & vect,
+    const std::vector<size_t> & order) const;
+
+  template<class T>
+  std::vector<T> get_reordered_vector(const std::vector<T> & vect) const;
 
 protected:
   // Boilerplate
@@ -76,6 +88,17 @@ protected:
   // Last received data
   rclcpp::Time last_timestamp_;
   sensor_msgs::msg::JointState last_joint_states_msg_;
+
+  // Joint state reordering
+  std::vector<std::string> ordered_joint_names_;
+  std::map<std::string, size_t> ordered_joint_index_map_;
+  std::vector<size_t> joint_state_order_;
+
+  // Data
+  std::vector<std::string> joint_names_;
+  std::vector<double> joint_positions_;
+  std::vector<double> joint_velocities_;
+  std::vector<double> joint_torques_;
 
   // Subcriber
   std::string joint_states_topic_;

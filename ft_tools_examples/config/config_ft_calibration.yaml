@@ -1,0 +1,32 @@
+ft_calibration_node:
+  ros__parameters:
+    topic_raw_wrench: /force_torque_sensor_broadcaster/wrench
+    topic_joint_state: joint_states
+
+    calibration:
+      min_nb_samples: 10
+      reference_frame:
+        id: iiwa_base
+      sensor_frame:
+        id: ft_sensor
+      gravity_in_reference_frame: [0.0, 0.0, -9.81]
+      calibration_filename: ft_calibration_parameters.yaml
+      calibration_package: ft_tools_examples
+
+    kinematics:
+      plugin_name: kinematics_interface_kdl/KinematicsInterfaceKDL
+      plugin_package: kinematics_interface
+      base: iiwa_base
+      tip: interaction_point # tool0
+      group_name: arm
+      alpha: 0.0005
+
+    joint_state_monitor:
+      joints:
+      - joint_a1
+      - joint_a2
+      - joint_a3
+      - joint_a4
+      - joint_a5
+      - joint_a6
+      - joint_a7

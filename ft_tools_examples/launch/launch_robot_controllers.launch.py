@@ -13,11 +13,12 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument  # IncludeLaunchDescription
+# from launch.event_handlers import OnProcessExit
 from launch.substitutions import Command, FindExecutable
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-# from launch_ros.actions import Node
+
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -55,64 +56,61 @@ def generate_launch_description():
                 ]
             ),
             ' ',
-            'prefix:=', '""'
-            ' ',
-            'use_sim:=', 'false',
-            ' ',
             'use_fake_hardware:=', use_fake_hardware,
             ' ',
             'robot_ip:=', robot_ip,
         ]
     )
-    # robot_description = {'robot_description': robot_description_content}
+    robot_description = {'robot_description': robot_description_content}
 
-    # Launch Moveit2 planning pipe
-    iiwa_planning_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
+    robot_state_pub_node = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        namespace='/',
+        output='both',
+        parameters=[robot_description]
+    )
+
+    # Launch controllers
+    robot_controllers = PathJoinSubstitution(
+        [
             FindPackageShare('ft_tools_examples'),
-            '/launch',
-            '/iiwa_planning.launch.py'
-        ]),
-        launch_arguments={
-            'robot_description_content': robot_description_content,
-            'start_rviz': 'true',
-            'use_sim': 'false',
-        }.items(),
+            'config',
+            'controllers.yaml',
+        ]
     )
 
-    # Launch calibration node
-    calibration_node_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare('ft_tools'),
-            '/launch',
-            '/launch_ft_calibration.launch.py'
-        ]),
-        launch_arguments={
-            'robot_description_content': robot_description_content,
-            'calibration_node_config_package': 'ft_tools_examples',
-            'calibration_node_config_file': 'config_ft_calibration.yaml',
-        }.items(),
+    control_node = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[robot_description, robot_controllers],
+        output='both',
     )
 
-    # Launch estimation node
-    extimation_node_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
-            FindPackageShare('ft_tools'),
-            '/launch',
-            '/launch_ft_estimation.launch.py'
-        ]),
-        launch_arguments={
-            'robot_description_content': robot_description_content,
-            'extimation_node_config_package': 'ft_tools_examples',
-            'extimation_node_config_file': 'config_ft_estimation.yaml',
-        }.items(),
+    joint_state_broadcaster_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['joint_state_broadcaster', '-c', '/controller_manager'],
     )
 
-    # Return
+    force_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['force_torque_sensor_broadcaster', '-c', '/controller_manager'],
+    )
+
+    arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['iiwa_arm_controller', '-c', '/controller_manager'],
+    )
+
     nodes = [
-        iiwa_planning_launch,
-        calibration_node_launch,
-        extimation_node_launch
+        robot_state_pub_node,
+        control_node,
+        joint_state_broadcaster_spawner,
+        force_controller_spawner,
+        arm_controller_spawner
     ]
 
     return LaunchDescription(declared_arguments + nodes)

@@ -24,6 +24,7 @@ using namespace std::chrono_literals;
 
 namespace ft_tools
 {
+
 FtCalibrationNode::FtCalibrationNode()
 : LifecycleNode("ft_calibration_node")
 {
@@ -89,7 +90,11 @@ bool FtCalibrationNode::update_robot_state()
   // Update sensor pose w.r.t. robot base
   if (success) {
     sensor_frame_wrt_ref_frame_ = \
-      sensor_frame_wrt_robot_base_ * ref_frame_wrt_robot_base_.inverse();
+      ref_frame_wrt_robot_base_.inverse() * sensor_frame_wrt_robot_base_;
+  } else {
+    auto clock = this->get_clock();
+    RCLCPP_WARN_THROTTLE(this->get_logger(), *clock, 1000, "Failed to update robot joint state!");
+    return false;
   }
 
   return success;
