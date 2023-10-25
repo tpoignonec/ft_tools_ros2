@@ -56,14 +56,14 @@ def generate_launch_description():
     # Get SRDF via xacro
     robot_description_semantic_content = Command(
         [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
+            PathJoinSubstitution([FindExecutable(name='xacro')]),
+            ' ',
             PathJoinSubstitution(
-                [FindPackageShare('iiwa_description'), "srdf", "iiwa.srdf.xacro"]
+                [FindPackageShare('iiwa_description'), 'srdf', 'iiwa.srdf.xacro']
             ),
-            " ",
-            "name:=", "iiwa",
-            " ",
+            ' ',
+            'name:=', 'iiwa',
+            ' ',
             'description_package:=', 'iiwa_description',
         ]
     )
@@ -74,58 +74,58 @@ def generate_launch_description():
 
     # Get planning parameters
     robot_description_planning_joint_limits = PathJoinSubstitution([
-            FindPackageShare('iiwa_description'), "moveit2", "iiwa_joint_limits.yaml",
+            FindPackageShare('iiwa_description'), 'moveit2', 'iiwa_joint_limits.yaml',
         ]
     )
 
     robot_description_planning_cartesian_limits = PathJoinSubstitution([
-            FindPackageShare('iiwa_description'), "moveit2", "iiwa_cartesian_limits.yaml",
+            FindPackageShare('iiwa_description'), 'moveit2', 'iiwa_cartesian_limits.yaml',
         ]
     )
 
     move_group_capabilities = {
-        "capabilities": """pilz_industrial_motion_planner/MoveGroupSequenceAction \
+        'capabilities': """pilz_industrial_motion_planner/MoveGroupSequenceAction \
             pilz_industrial_motion_planner/MoveGroupSequenceService"""
     }
 
     robot_description_kinematics = PathJoinSubstitution(
-        [FindPackageShare('iiwa_description'), "moveit2", "kinematics.yaml"]
+        [FindPackageShare('iiwa_description'), 'moveit2', 'kinematics.yaml']
     )
 
     planning_pipelines_config = PathJoinSubstitution([
-            FindPackageShare('iiwa_description'), "moveit2", "planning_pipelines_config.yaml",
+            FindPackageShare('iiwa_description'), 'moveit2', 'planning_pipelines_config.yaml',
         ]
     )
 
     ompl_planning_config = PathJoinSubstitution([
-            FindPackageShare('iiwa_description'), "moveit2", "ompl_planning.yaml",
+            FindPackageShare('iiwa_description'), 'moveit2', 'ompl_planning.yaml',
         ]
     )
 
     moveit_controllers = PathJoinSubstitution(
         [FindPackageShare('iiwa_description'),
-            "moveit2", "iiwa_moveit_controller_config.yaml"]
+            'moveit2', 'iiwa_moveit_controller_config.yaml']
     )
 
     trajectory_execution = {
-        "moveit_manage_controllers": True,
-        "trajectory_execution.allowed_execution_duration_scaling": 1.2,
-        "trajectory_execution.allowed_goal_duration_margin": 0.5,
-        "trajectory_execution.allowed_start_tolerance": 0.01,
+        'moveit_manage_controllers': True,
+        'trajectory_execution.allowed_execution_duration_scaling': 1.2,
+        'trajectory_execution.allowed_goal_duration_margin': 0.5,
+        'trajectory_execution.allowed_start_tolerance': 0.01,
     }
 
     planning_scene_monitor_parameters = {
-        "publish_planning_scene": True,
-        "publish_geometry_updates": True,
-        "publish_state_updates": True,
-        "publish_transforms_updates": True,
+        'publish_planning_scene': True,
+        'publish_geometry_updates': True,
+        'publish_state_updates': True,
+        'publish_transforms_updates': True,
     }
 
     move_group_node = Node(
-        package="moveit_ros_move_group",
-        executable="move_group",
+        package='moveit_ros_move_group',
+        executable='move_group',
         namespace=namespace,
-        output="screen",
+        output='screen',
         parameters=[
             robot_description,
             robot_description_semantic,
@@ -138,7 +138,7 @@ def generate_launch_description():
             moveit_controllers,
             planning_scene_monitor_parameters,
             move_group_capabilities,
-            {"use_sim_time": use_sim},
+            {'use_sim_time': use_sim},
         ],
     )
 

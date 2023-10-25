@@ -15,7 +15,8 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument  # IncludeLaunchDescription
 # from launch.event_handlers import OnProcessExit
-from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, LaunchConfiguration
+from launch.substitutions import Command, FindExecutable
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -73,17 +74,17 @@ def generate_launch_description():
     # Launch controllers
     robot_controllers = PathJoinSubstitution(
         [
-            FindPackageShare("ft_tools_examples"),
-            "config",
-            "controllers.yaml",
+            FindPackageShare('ft_tools_examples'),
+            'config',
+            'controllers.yaml',
         ]
     )
 
     control_node = Node(
-        package="controller_manager",
-        executable="ros2_control_node",
+        package='controller_manager',
+        executable='ros2_control_node',
         parameters=[robot_description, robot_controllers],
-        output="both",
+        output='both',
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -93,15 +94,15 @@ def generate_launch_description():
     )
 
     force_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["force_torque_sensor_broadcaster", "-c", "/controller_manager"],
+        package='controller_manager',
+        executable='spawner',
+        arguments=['force_torque_sensor_broadcaster', '-c', '/controller_manager'],
     )
 
     arm_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=["iiwa_arm_controller", "-c", "/controller_manager"],
+        package='controller_manager',
+        executable='spawner',
+        arguments=['iiwa_arm_controller', '-c', '/controller_manager'],
     )
 
     nodes = [
