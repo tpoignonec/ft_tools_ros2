@@ -1,0 +1,9 @@
+<library path="ft_fake_hw">
+
+<class name="ft_fake_hw/FtFakeHw" type="ft_fake_hw::FtFakeHw" base_class_type="hardware_interface::SensorInterface">
+    <description>
+        A fake hardware interface for f/t sensors that reads data from a wrench topic.
+    </description>
+</class>
+
+</library>
