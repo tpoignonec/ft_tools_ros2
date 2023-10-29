@@ -1,39 +1,83 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="ft_sensor_r2c_hardware">
+  <xacro:macro name="ft_sensor_r2c_hardware" params="use_sim:=^|false use_fake_hardware:=^|true">
 
-    <ros2_control name="ft" type="system">
-      <hardware>
-        <plugin>ethercat_driver/EthercatDriver</plugin>
-        <param name="master_id">0</param>
-        <param name="control_frequency">100</param>
-      </hardware>
+    <ros2_control name="ft" type="sensor">
 
-      <sensor name="ftsensor">
-        <state_interface name="force.x"/>
-        <state_interface name="force.y"/>
-        <state_interface name="force.z"/>
-        <state_interface name="torque.x"/>
-        <state_interface name="torque.y"/>
-        <state_interface name="torque.z"/>
-        <ec_module name="Mini40">
-          <plugin>ethercat_plugins/ATI_FTSensor</plugin>
-          <param name="alias">0</param>
-          <param name="position">0</param>
+      <xacro:if value="$(arg use_sim)">
+        <hardware>
+          <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+      </xacro:if>
+      <xacro:unless value="$(arg use_sim)">
+        <hardware>
+        <xacro:if value="${use_fake_hardware}">
+          <plugin>ft_fake_hw/FtFakeHw</plugin>
+          <param name="sensor_name">ftsensor</param>
+          <param name="topic">/dummy_ft_sensor_data</param>
           <param name="force.x.state_interface">force.x</param>
           <param name="force.y.state_interface">force.y</param>
           <param name="force.z.state_interface">force.z</param>
           <param name="torque.x.state_interface">torque.x</param>
           <param name="torque.y.state_interface">torque.y</param>
           <param name="torque.z.state_interface">torque.z</param>
-          <param name="force.x.offset">0.0</param>
-          <param name="force.y.offset">0.0</param>
-          <param name="force.z.offset">0.0</param>
-          <param name="torque.x.offset">0.0</param>
-          <param name="torque.y.offset">0.0</param>
-          <param name="torque.z.offset">0.0</param>
-        </ec_module>
+        </xacro:if>
+        <xacro:unless value="${use_fake_hardware}">
+          <plugin>ethercat_driver/EthercatDriver</plugin>
+          <param name="master_id">0</param>
+          <param name="control_frequency">100</param>
+        </xacro:unless>
+        </hardware>
+      </xacro:unless>
+
+      <sensor name="ftsensor">
+
+        <state_interface name="force.x">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+
+        <state_interface name="force.y">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+
+        <state_interface name="force.z">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+
+        <state_interface name="torque.x">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+
+        <state_interface name="torque.y">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+
+        <state_interface name="torque.z">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+
+        <xacro:unless value="$(arg use_sim)">
+          <xacro:unless value="${use_fake_hardware}">
+            <ec_module name="Mini40">
+              <plugin>ethercat_plugins/ATI_FTSensor</plugin>
+              <param name="alias">0</param>
+              <param name="position">0</param>
+              <param name="force.x.state_interface">force.x</param>
+              <param name="force.y.state_interface">force.y</param>
+              <param name="force.z.state_interface">force.z</param>
+              <param name="torque.x.state_interface">torque.x</param>
+              <param name="torque.y.state_interface">torque.y</param>
+              <param name="torque.z.state_interface">torque.z</param>
+              <param name="force.x.offset">0.0</param>
+              <param name="force.y.offset">0.0</param>
+              <param name="force.z.offset">0.0</param>
+              <param name="torque.x.offset">0.0</param>
+              <param name="torque.y.offset">0.0</param>
+              <param name="torque.z.offset">0.0</param>
+            </ec_module>
+          </xacro:unless>
+        </xacro:unless>
       </sensor>
     </ros2_control>
 
