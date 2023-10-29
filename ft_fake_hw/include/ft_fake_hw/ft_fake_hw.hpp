@@ -21,6 +21,7 @@
 // C++
 #include <memory>
 #include <string>
+#include <vector>
 
 // ROS
 #include "realtime_tools/realtime_buffer.h"
@@ -43,13 +44,13 @@ using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface
 class FtFakeHw : public hardware_interface::SensorInterface
 {
 public:
-  CallbackReturn on_init(const hardware_interface::HardwareInfo& info) override;
+  CallbackReturn on_init(const hardware_interface::HardwareInfo & info) override;
 
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
 
   hardware_interface::return_type read(
-    const rclcpp::Time& time,
-    const rclcpp::Duration& period) override;
+    const rclcpp::Time & time,
+    const rclcpp::Duration & period) override;
 
 private:
   // Node and subsreiber
@@ -58,16 +59,17 @@ private:
 
   // real-time buffer
   realtime_tools::RealtimeBuffer<std::shared_ptr<geometry_msgs::msg::Wrench>>
-    input_wrench_fake_values_msg_;
+  input_wrench_fake_values_msg_;
 
   /// Name of the force sensor interfaces
   std::vector<std::string> interfaces_;
   /// Wrench measurement
   std::vector<double> fake_wrench_values_;
 
-  template <typename HandleType>
-  bool getInterface(const std::string& name, const std::string& interface_name, const size_t vector_index,
-                    std::vector<std::vector<double>>& values, std::vector<HandleType>& interfaces);
+  template<typename HandleType>
+  bool getInterface(
+    const std::string & name, const std::string & interface_name, const size_t vector_index,
+    std::vector<std::vector<double>> & values, std::vector<HandleType> & interfaces);
 };
 
 }  // namespace ft_fake_hw
