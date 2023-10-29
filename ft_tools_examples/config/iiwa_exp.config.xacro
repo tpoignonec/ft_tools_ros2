@@ -49,7 +49,10 @@
         use_sim="$(arg use_sim)" use_fake_hardware="$(arg use_fake_hardware)"
     />
 
-  <xacro:ft_sensor_r2c_hardware/>
+  <xacro:ft_sensor_r2c_hardware
+        use_sim="$(arg use_sim)"
+        use_fake_hardware="$(arg use_fake_hardware)"
+  />
 
     <xacro:iiwa_gazebo
         runtime_config_package="$(arg runtime_config_package)"

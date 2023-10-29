@@ -11,6 +11,7 @@
 
   <depend>ft_tools</depend>
   <depend>ft_msgs</depend>
+  <depend>ft_fake_hw</depend>
 
   <exec_depend>iiwa_bringup</exec_depend>
 
