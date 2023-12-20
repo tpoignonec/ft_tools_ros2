@@ -3,7 +3,7 @@
 
   <xacro:macro name="ft_sensor_r2c_hardware" params="use_sim:=^|false use_fake_hardware:=^|true">
 
-  <xacro:if value="${use_fake_hardware}"> 
+  <xacro:if value="${use_fake_hardware}">
     <xacro:property name="hw_type" value="sensor" />
   </xacro:if>
 
