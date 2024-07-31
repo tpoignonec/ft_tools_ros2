@@ -45,6 +45,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   $<INSTALL_INTERFACE:include>
   ${YAML_CPP_INCLUDEDIR}
 )
+target_link_libraries(${PROJECT_NAME} yaml-cpp)
 ament_target_dependencies(${PROJECT_NAME} ${DEPENDENCIES})
 
 
