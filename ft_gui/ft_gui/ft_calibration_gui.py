@@ -136,7 +136,7 @@ class MainWindow(QMainWindow):
                     "background-color: rgb(255,0,51);"
                     "border-radius:5px;"
                 )
-                self.node.get_logger().warning(f"An error occurred:{error}")
+                self.node.get_logger().warning(f"An error occurred: {error}")
                 self.node.get_logger().error('Failled to initialize ROS2 comms!')
         else:
             self.is_connected = False
