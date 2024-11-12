@@ -3,7 +3,7 @@ Wrench estimation and calibration of F/T sensor for ROS2 applications.
 
 
 [![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build tests (humble)](../../actions/workflows/ci.yaml/badge.svg?branch=main)](../../actions/workflows/ci.yaml?query=branch:humble)
+[![Build tests (humble)](../../actions/workflows/ci.yaml/badge.svg?branch=humble)](../../actions/workflows/ci.yaml?query=branch:humble)
 
 **Author:** Thibault Poignonec: [tpoignonec@unistra.fr](mailto:tpoignonec@unistra.fr)
 
