@@ -3,11 +3,11 @@ Wrench estimation and calibration of F/T sensor for ROS2 applications.
 
 
 [![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![CI (humble)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml/badge.svg)](https://github.com/tpoignonec/ft_tools_ros2/actions/workflows/ci.yml)
-[![Build tests (jazzy)](../../actions/workflows/ci-jazzy.yaml/badge.svg?branch=main)](../../actions/workflows/ci-jazzy.yaml?query=branch:main)
 [![Build tests (rolling)](../../actions/workflows/ci-rolling.yaml/badge.svg?branch=main)](../../actions/workflows/ci-rolling.yaml?query=branch:main)
+[![Build tests (jazzy)](../../actions/workflows/ci-jazzy.yaml/badge.svg?branch=main)](../../actions/workflows/ci-jazzy.yaml?query=branch:main)
+[![Build tests (humble)](../../actions/workflows/ci.yaml/badge.svg?branch=humble)](../../actions/workflows/ci.yaml?query=branch:humble)
 
-***The current devs are based on the humble ROS 2 distribution (Ubuntu 22.04 LTS)***
+***The current devs are based on the jazzy ROS 2 distribution (Ubuntu 22.04 LTS)***
 
 **Author:** Thibault Poignonec: [tpoignonec@unistra.fr](mailto:tpoignonec@unistra.fr)
 
@@ -226,7 +226,7 @@ TODO
 
 1) Install third party utils for `ft_tools_examples`
 ```shell
-source /opt/ros/humble/setup.bash
+source /opt/ros/jazzy/setup.bash
 cd <ws>/src
 vcs import . < ft_tools_ros2/ft_tools_examples/ft_tools_examples.repos
 rosdep install --ignore-src --from-paths . -y -r
