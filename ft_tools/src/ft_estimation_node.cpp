@@ -282,7 +282,7 @@ bool FtEstimationNode::init_kinematics_monitoring()
 
   // Load URDF
   auto robot_param = rclcpp::Parameter();
-  if (!parameters_interface->get_parameter("robot_description", robot_param))
+  if (!this->get_parameter("robot_description", robot_param))
   {
     RCLCPP_ERROR(this->get_logger(), "parameter robot_description not set");
     return false;
