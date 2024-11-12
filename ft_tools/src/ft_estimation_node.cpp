@@ -286,6 +286,7 @@ bool FtEstimationNode::init_kinematics_monitoring()
   {
     RCLCPP_ERROR(LOGGER, "parameter robot_description not set");
     return false;
+  }
   auto robot_description = robot_param.as_string();
 
   // Load the differential IK plugin
