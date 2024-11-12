@@ -297,7 +297,7 @@ bool FtCalibrationNode::init_kinematics_monitoring()
   auto robot_param = rclcpp::Parameter();
   if (!parameters_interface->get_parameter("robot_description", robot_param))
   {
-    RCLCPP_ERROR(LOGGER, "parameter robot_description not set");
+    RCLCPP_ERROR(this->get_logger(), "parameter robot_description not set");
     return false;
   }
   auto robot_description = robot_param.as_string();
