@@ -292,6 +292,15 @@ bool FtCalibrationNode::init_kinematics_monitoring()
     return false;
   }
   bool all_ok = true;
+
+  // Load URDF
+  auto robot_param = rclcpp::Parameter();
+  if (!this->get_parameter("robot_description", robot_param)) {
+    RCLCPP_ERROR(this->get_logger(), "parameter robot_description not set");
+    return false;
+  }
+  auto robot_description = robot_param.as_string();
+
   // Load the differential IK plugin
   if (!parameters_.kinematics.plugin_name.empty()) {
     try {
@@ -302,7 +311,7 @@ bool FtCalibrationNode::init_kinematics_monitoring()
       kinematics_ = std::unique_ptr<kinematics_interface::KinematicsInterface>(
         kinematics_loader_->createUnmanagedInstance(parameters_.kinematics.plugin_name));
       if (!kinematics_->initialize(
-          this->get_node_parameters_interface(), parameters_.kinematics.tip))
+          robot_description, this->get_node_parameters_interface(), "kinematics"))
       {
         all_ok &= false;
       }
