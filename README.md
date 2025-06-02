@@ -3,9 +3,10 @@ Wrench estimation and calibration of F/T sensor for ROS2 applications.
 
 
 [![Licence](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Build tests (rolling)](../../actions/workflows/ci-rolling.yaml/badge.svg?branch=main)](../../actions/workflows/ci-rolling.yaml?query=branch:main)
-[![Build tests (jazzy)](../../actions/workflows/ci-jazzy.yaml/badge.svg?branch=main)](../../actions/workflows/ci-jazzy.yaml?query=branch:main)
+
 [![Build tests (humble)](../../actions/workflows/ci.yaml/badge.svg?branch=humble)](../../actions/workflows/ci.yaml?query=branch:humble)
+[![Build tests (jazzy)](../../actions/workflows/ci-jazzy.yaml/badge.svg?branch=main)](../../actions/workflows/ci-jazzy.yaml?query=branch:main)
+[![Build tests (rolling)](../../actions/workflows/ci-rolling.yaml/badge.svg?branch=main)](../../actions/workflows/ci-rolling.yaml?query=branch:main)
 
 ***The current devs are based on the jazzy ROS 2 distribution (Ubuntu 22.04 LTS)***
 
