@@ -24,7 +24,7 @@
 #include <vector>
 
 // ROS
-#include "realtime_tools/realtime_buffer.h"
+#include "realtime_tools/realtime_buffer.hpp"
 
 #include <hardware_interface/handle.hpp>
 #include <hardware_interface/hardware_info.hpp>
